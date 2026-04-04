@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>마진 분석 리포트</title>
+<style>
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/variable/pretendardvariable.css');
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0f0f12;--bg2:#18181d;--bg3:#1f1f26;--border:#2a2a34;--text:#f0f0f5;--text2:#a0a0b0;--text3:#6a6a7a;
+--green:#10b981;--green-bg:rgba(16,185,129,.12);--red:#ef4444;--red-bg:rgba(239,68,68,.12);
+--blue:#3b82f6;--blue-bg:rgba(59,130,246,.12);--orange:#f97316;--orange-bg:rgba(249,115,22,.12);
+--purple:#8b5cf6;--purple-bg:rgba(139,92,246,.12);--pink:#ec4899;--yellow:#eab308;
+--r:12px;--r-sm:8px}
+body{font-family:'Pretendard Variable',-apple-system,system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.7;padding:24px;max-width:800px;margin:0 auto}
+h1{font-size:24px;font-weight:800;margin-bottom:4px}
+h2{font-size:18px;font-weight:700;margin:28px 0 12px;display:flex;align-items:center;gap:8px}
+.badge{display:inline-block;padding:4px 12px;border-radius:999px;font-size:12px;font-weight:700}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:20px;margin-bottom:12px}
+.bar-chart{display:flex;height:36px;border-radius:8px;overflow:hidden;background:var(--bg);margin:8px 0}
+.bar-legend{display:flex;gap:12px;font-size:11px;color:var(--text3);flex-wrap:wrap}
+.bar-legend span{display:flex;align-items:center;gap:4px}
+.bar-legend .dot{width:8px;height:8px;border-radius:2px}
+.mode-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.mode-label{font-weight:700;font-size:14px}
+.mode-profit{font-weight:800;font-size:20px}
+table{width:100%;border-collapse:collapse;font-size:13px;margin:8px 0}
+th{background:var(--bg3);padding:8px 10px;text-align:left;font-weight:600;color:var(--text2);font-size:12px}
+td{padding:8px 10px;border-bottom:1px solid var(--border)}
+.num{text-align:right;font-variant-numeric:tabular-nums}
+.pos{color:var(--green)}.neg{color:var(--red)}.warn{color:var(--orange)}
+.highlight{background:var(--blue-bg)}
+.strat-card{border-left:3px solid;padding:16px;margin-bottom:12px;background:var(--bg2);border-radius:0 var(--r) var(--r) 0}
+.strat-a{border-color:var(--green)} .strat-b{border-color:var(--blue)} .strat-c{border-color:var(--purple)} .strat-toss{border-color:var(--pink)}
+.rec{padding:16px;background:var(--green-bg);border:1px solid rgba(16,185,129,.3);border-radius:var(--r);margin-top:16px;font-size:14px;line-height:1.8}
+.flow{display:flex;align-items:center;gap:0;margin:16px 0;flex-wrap:wrap}
+.flow-item{padding:10px 16px;border-radius:var(--r-sm);font-size:13px;font-weight:600;text-align:center;min-width:80px}
+.flow-arrow{color:var(--text3);font-size:18px;padding:0 4px}
+.sub{font-size:11px;color:var(--text3);margin-top:2px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:600px){.grid-2{grid-template-columns:1fr}.flow{flex-direction:column}.flow-arrow{transform:rotate(90deg)}}
+</style>
+</head>
+<body>
+
+<h1>💰 {{PRODUCT_NAME}} 마진 분석</h1>
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 24px">
+  <span class="badge" style="background:var(--blue-bg);color:var(--blue)">원가 {{COST}}원</span>
+  <span class="badge" style="background:var(--purple-bg);color:var(--purple)">택배비 {{DELIVERY}}원</span>
+  <span class="badge" style="{{TAX_STYLE}}">{{TAX_LABEL}}</span>
+  <span class="badge" style="background:var(--orange-bg);color:var(--orange)">ROAS {{ROAS}}%</span>
+  <span class="badge" style="background:var(--bg3);color:var(--text2)">카테고리 {{CATEGORY}} (수수료 {{COMM_RATE}}%)</span>
+</div>
+
+<!-- 올웨이즈 판매가 구조 (시각적 설명) -->
+<h2>🧮 올웨이즈 판매가 구조 — 이렇게 나뉩니다</h2>
+<div class="card" style="background:linear-gradient(135deg,#0f0f12,#1a1a2e)">
+  <p style="font-size:13px;color:var(--text2);margin-bottom:16px">판매가 안에서 각 비용이 어떻게 빠지는지 한눈에 보세요</p>
+
+  <div class="flow">
+    <div class="flow-item" style="background:var(--blue-bg);color:var(--blue)">판매가<br><strong>{{PRICE_NORMAL}}원</strong></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-item" style="background:var(--red-bg);color:var(--red)">원가<br><strong>{{COST}}원</strong></div>
+    <div class="flow-arrow">+</div>
+    <div class="flow-item" style="background:var(--orange-bg);color:var(--orange)">택배비<br><strong>{{DELIVERY}}원</strong></div>
+    <div class="flow-arrow">+</div>
+    <div class="flow-item" style="background:var(--yellow-bg);color:var(--yellow)">수수료<br><strong>{{COMMISSION}}원</strong></div>
+    {{VAT_FLOW}}
+    <div class="flow-arrow">=</div>
+    <div class="flow-item" style="background:var(--green-bg);color:var(--green)">순이익<br><strong>{{PROFIT_NORMAL}}원</strong></div>
+  </div>
+
+  {{BAR_CHARTS}}
+</div>
+
+<!-- 전략별 비교 -->
+<h2>⚡ 올웨이즈 전략 비교</h2>
+
+<div class="strat-card strat-a">
+  <div style="font-weight:700;font-size:15px;margin-bottom:4px">🔥 전략A: 타임특가(20%↓) + CPS/CPC</div>
+  <div style="font-size:12px;color:var(--text2);margin-bottom:12px">타임특가 20% 할인 → CPS 광고비 무료! 빠른 판매량 확보</div>
+  {{STRAT_A_TABLE}}
+  <div style="margin-top:8px;padding:8px 12px;background:var(--green-bg);border-radius:6px;font-size:12px;color:var(--green);font-weight:600">✅ 타임특가 20% 이상 할인 시 CPS 광고비 무료!</div>
+</div>
+
+<div class="strat-card strat-b">
+  <div style="font-weight:700;font-size:15px;margin-bottom:4px">📦 전략B: 일반가 + CPC/CPS</div>
+  <div style="font-size:12px;color:var(--text2);margin-bottom:12px">할인 없이 광고로 판매. 마진 여유 적을 때</div>
+  {{STRAT_B_TABLE}}
+</div>
+
+<div class="strat-card strat-c">
+  <div style="font-weight:700;font-size:15px;margin-bottom:4px">📢 전략C: 일반가 + CPM</div>
+  <div style="font-size:12px;color:var(--text2);margin-bottom:12px">노출 광고로 인지도 확보. 신규 런칭에 적합</div>
+  {{STRAT_C_TABLE}}
+</div>
+
+<h2>🟣 토스쇼핑</h2>
+<div class="strat-card strat-toss">
+  <div style="font-size:12px;color:var(--text2);margin-bottom:12px">광고 집행 시 운영수수료 8% 면제 → 결제수수료 2%만</div>
+  {{TOSS_TABLE}}
+</div>
+
+<!-- 추천 -->
+<div class="rec">
+  {{RECOMMEND}}
+</div>
+
+<div style="text-align:center;margin-top:32px;color:var(--text3);font-size:12px">
+  상품등록 서포터 v2 — 19기 AI 세자클
+</div>
+
+</body>
+</html>

@@ -23,8 +23,113 @@ const FOOD_SEASONS: Record<number, { fruits: string[]; vegs: string[]; note: str
 };
 
 const COMMISSION = { fresh: 0.058, processed: 0.106 };
-const TOSS = { sales: 0.08, payment: 0.016 };
+const TOSS = { sales: 0.08, payment: 0.02 };
 const DELIVERY: Record<string, number> = { light: 3000, medium: 3500, heavy: 4500 };
+
+// ── 올웨이즈 카테고리별 수수료 (VAT 별도) ──
+const ALWAYZ_COMM: Record<string, number> = {
+  "신선식품": 0.058, "건강식품": 0.076, "가공식품": 0.106, "냉장/냉동식품": 0.106,
+  "생수/음료": 0.106, "스낵/간식": 0.106, "유제품": 0.106, "커피/차": 0.106,
+  "생활소품": 0.078, "생활잡화": 0.078, "화장지/물티슈": 0.09,
+  "방충용품": 0.10, "방향/탈취": 0.10, "생활용품": 0.108,
+  "뷰티": 0.096, "패션": 0.105, "가구/홈데코": 0.108,
+  "가전/디지털": 0.058, "주방용품": 0.108, "반려용품": 0.108,
+  "완구/취미": 0.108, "스포츠": 0.108, "문구": 0.108,
+};
+
+// ── 마진 계산 함수 ──
+interface MarginInput {
+  name: string; cost: number; deliveryCost: number;
+  isTaxable: boolean; // true=과세, false=면세
+  category?: string; roas?: number; timeDiscount?: number;
+}
+
+function calcMargin(input: MarginInput) {
+  const { name, cost, deliveryCost, isTaxable, category, roas = 300, timeDiscount = 20 } = input;
+  const fresh = isFresh(name, category || "");
+  const commRate = category && ALWAYZ_COMM[category] ? ALWAYZ_COMM[category] : (fresh ? 0.058 : 0.106);
+  const commRateVAT = commRate * 1.1; // VAT 포함
+
+  const modes = [
+    { label: "공격적", mult: 1.55 },
+    { label: "기본", mult: 1.8 },
+    { label: "널널", mult: 2.2 },
+  ];
+
+  const results = modes.map(m => {
+    const price = prettyPrice(cost * m.mult);
+    const vat = isTaxable ? Math.round(price / 11) : 0;
+    const commission = Math.round(price * commRateVAT);
+
+    // 올웨이즈 일반 판매
+    const alwayzNormal = price - cost - deliveryCost - commission - vat;
+
+    // 올웨이즈 타임특가
+    const timePrice = prettyPrice(price * (1 - timeDiscount / 100));
+    const timeVat = isTaxable ? Math.round(timePrice / 11) : 0;
+    const timeComm = Math.round(timePrice * commRateVAT);
+    const adCost = Math.round(timePrice / (roas / 100));
+
+    // 타임특가 + CPS (20% 이상이면 CPS 무료)
+    const cpsFree = timeDiscount >= 20;
+    const alwayzTimeCPS = timePrice - cost - deliveryCost - timeComm - timeVat - (cpsFree ? 0 : adCost);
+    // 타임특가 + CPC
+    const alwayzTimeCPC = timePrice - cost - deliveryCost - timeComm - timeVat - adCost;
+
+    // 일반 + CPC/CPS
+    const alwayzAdCost = Math.round(price / (roas / 100));
+    const alwayzCPS = price - cost - deliveryCost - commission - vat - alwayzAdCost;
+    const alwayzCPC = price - cost - deliveryCost - commission - vat - alwayzAdCost;
+
+    // 일반 + CPM
+    const alwayzCPM = price - cost - deliveryCost - commission - vat - alwayzAdCost;
+
+    // 토스 일반 (수수료 10%)
+    const tossComm = Math.round(price * 0.10);
+    const tossVat = isTaxable ? Math.round(price / 11) : 0;
+    const tossNormal = price - cost - deliveryCost - tossComm - tossVat;
+
+    // 토스 광고 (수수료 2%만, 운영수수료 면제)
+    const tossAdComm = Math.round(price * 0.02);
+    const tossAdCost = Math.round(price / (roas / 100));
+    const tossAd = price - cost - deliveryCost - tossAdComm - tossVat - tossAdCost;
+
+    return {
+      mode: m.label, mult: m.mult, price,
+      vat, commission,
+      alwayz: {
+        normal: { profit: alwayzNormal, rate: +((alwayzNormal / price) * 100).toFixed(1) },
+        timeCPS: { price: timePrice, profit: alwayzTimeCPS, rate: +((alwayzTimeCPS / timePrice) * 100).toFixed(1), cpsFree, adCost: cpsFree ? 0 : adCost },
+        timeCPC: { price: timePrice, profit: alwayzTimeCPC, rate: +((alwayzTimeCPC / timePrice) * 100).toFixed(1), adCost },
+        cps: { profit: alwayzCPS, rate: +((alwayzCPS / price) * 100).toFixed(1), adCost: alwayzAdCost },
+        cpc: { profit: alwayzCPC, rate: +((alwayzCPC / price) * 100).toFixed(1), adCost: alwayzAdCost },
+        cpm: { profit: alwayzCPM, rate: +((alwayzCPM / price) * 100).toFixed(1), adCost: alwayzAdCost },
+      },
+      toss: {
+        normal: { profit: tossNormal, rate: +((tossNormal / price) * 100).toFixed(1), commission: tossComm },
+        ad: { profit: tossAd, rate: +((tossAd / price) * 100).toFixed(1), commission: tossAdComm, adCost: tossAdCost },
+      },
+    };
+  });
+
+  return {
+    name, cost, deliveryCost, isTaxable, category: category || (fresh ? "신선식품" : "가공식품"),
+    commRate, commRateVAT, roas, timeDiscount,
+    modes: results,
+  };
+}
+
+// ── 상품 CRUD ──
+const MARGIN_FILE = join(DATA_DIR, "margin_products.json");
+
+function loadMarginProducts(): any[] {
+  if (existsSync(MARGIN_FILE)) return JSON.parse(readFileSync(MARGIN_FILE, "utf-8"));
+  return [];
+}
+
+function saveMarginProducts(products: any[]) {
+  writeFileSync(MARGIN_FILE, JSON.stringify(products, null, 2));
+}
 
 const FRESH_KW = ["과일","채소","야채","감자","고구마","양파","사과","배","딸기","수박","참외","토마토","포도",
   "복숭아","감귤","귤","한라봉","천혜향","레드향","자두","체리","블루베리","매실","밤","대추",
@@ -162,7 +267,7 @@ const server = Bun.serve({
 
     // CORS
     if (req.method === "OPTIONS") {
-      return new Response(null, { headers: { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Methods": "GET,POST", "Access-Control-Allow-Headers": "Content-Type" } });
+      return new Response(null, { headers: { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Methods": "GET,POST,DELETE", "Access-Control-Allow-Headers": "Content-Type" } });
     }
 
     // API: 엑셀 업로드 + 분석
@@ -210,6 +315,72 @@ const server = Bun.serve({
         });
       }
       return Response.json({ error: "선택된 상품 없음" }, { status: 404 });
+    }
+
+    // API: 마진 계산
+    if (url.pathname === "/api/margin-calc" && req.method === "POST") {
+      try {
+        const body = await req.json() as MarginInput;
+        const result = calcMargin(body);
+        return Response.json(result, { headers: { "Access-Control-Allow-Origin": "*" } });
+      } catch (e: any) {
+        return Response.json({ error: e.message }, { status: 500, headers: { "Access-Control-Allow-Origin": "*" } });
+      }
+    }
+
+    // API: 마진 상품 목록 조회
+    if (url.pathname === "/api/margin-products" && req.method === "GET") {
+      return Response.json(loadMarginProducts(), { headers: { "Access-Control-Allow-Origin": "*" } });
+    }
+
+    // API: 마진 상품 추가/수정
+    if (url.pathname === "/api/margin-products" && req.method === "POST") {
+      try {
+        const body = await req.json();
+        const products = loadMarginProducts();
+        if (body.id) {
+          const idx = products.findIndex((p: any) => p.id === body.id);
+          if (idx >= 0) products[idx] = { ...products[idx], ...body, updatedAt: new Date().toISOString() };
+        } else {
+          body.id = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+          body.createdAt = new Date().toISOString();
+          // 마진 계산 실행
+          const calc = calcMargin(body);
+          products.push({ ...body, calc });
+        }
+        saveMarginProducts(products);
+        return Response.json({ ok: true, products }, { headers: { "Access-Control-Allow-Origin": "*" } });
+      } catch (e: any) {
+        return Response.json({ error: e.message }, { status: 500, headers: { "Access-Control-Allow-Origin": "*" } });
+      }
+    }
+
+    // API: 마진 상품 삭제
+    if (url.pathname.startsWith("/api/margin-products/") && req.method === "DELETE") {
+      const id = url.pathname.split("/").pop();
+      let products = loadMarginProducts();
+      products = products.filter((p: any) => p.id !== id);
+      saveMarginProducts(products);
+      return Response.json({ ok: true }, { headers: { "Access-Control-Allow-Origin": "*" } });
+    }
+
+    // API: 마진 상품 일괄 계산 (엑셀)
+    if (url.pathname === "/api/margin-bulk" && req.method === "POST") {
+      try {
+        const body = await req.json() as { products: MarginInput[] };
+        const results = body.products.map(p => ({ ...p, calc: calcMargin(p) }));
+        // 저장
+        const existing = loadMarginProducts();
+        for (const r of results) {
+          (r as any).id = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+          (r as any).createdAt = new Date().toISOString();
+          existing.push(r);
+        }
+        saveMarginProducts(existing);
+        return Response.json({ ok: true, results, total: results.length }, { headers: { "Access-Control-Allow-Origin": "*" } });
+      } catch (e: any) {
+        return Response.json({ error: e.message }, { status: 500, headers: { "Access-Control-Allow-Origin": "*" } });
+      }
     }
 
     // 정적 파일 서빙
