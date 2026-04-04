@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>상품 서포터 v2 — 상품 찾기 & 등록</title>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/variable/pretendardvariable.css');
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0f0f12;--bg2:#18181d;--bg3:#1f1f26;--bg4:#27272f;
+  --border:#2a2a34;--border2:#353542;
+  --text:#f0f0f5;--text2:#a0a0b0;--text3:#6a6a7a;
+  --green:#10b981;--green-bg:rgba(16,185,129,.12);
+  --orange:#f97316;--orange-bg:rgba(249,115,22,.12);
+  --blue:#3b82f6;--blue-bg:rgba(59,130,246,.12);
+  --purple:#8b5cf6;--purple-bg:rgba(139,92,246,.12);
+  --pink:#ec4899;--pink-bg:rgba(236,72,153,.12);
+  --yellow:#eab308;--yellow-bg:rgba(234,179,8,.12);
+  --red:#ef4444;--red-bg:rgba(239,68,68,.12);
+  --r:12px;--r-sm:8px;--r-full:999px;
+  --shadow:0 2px 8px rgba(0,0,0,.3);
+}
+html{font-size:16px;scroll-behavior:smooth}
+body{font-family:'Pretendard Variable',-apple-system,system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.7;min-height:100vh}
+
+/* HEADER */
+.header{text-align:center;padding:48px 24px 32px;position:relative;overflow:hidden}
+.header::before{content:'';position:absolute;top:-120px;left:50%;transform:translateX(-50%);width:600px;height:400px;background:radial-gradient(ellipse,rgba(59,130,246,.08) 0%,transparent 70%);pointer-events:none}
+.header-badge{display:inline-block;padding:5px 16px;background:var(--blue-bg);border:1px solid rgba(59,130,246,.2);color:var(--blue);border-radius:var(--r-full);font-size:12px;font-weight:700;letter-spacing:1px;margin-bottom:12px;text-transform:uppercase}
+.header h1{font-size:28px;font-weight:800;letter-spacing:-.5px;margin-bottom:8px}
+.header h1 span{background:linear-gradient(135deg,var(--blue),var(--purple));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.header p{color:var(--text2);font-size:14px}
+
+/* CONTAINER */
+.container{max-width:900px;margin:0 auto;padding:0 20px 60px}
+
+/* TABS */
+.tabs{display:flex;gap:4px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:4px;margin-bottom:28px}
+.tab{flex:1;padding:12px 8px;border:none;background:none;color:var(--text3);font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;border-radius:var(--r-sm);transition:all .15s}
+.tab:hover{color:var(--text2);background:var(--bg3)}
+.tab.active{color:var(--text);background:var(--bg3);box-shadow:var(--shadow)}
+.tab-content{display:none}
+.tab-content.active{display:block}
+
+/* CARDS */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:24px;margin-bottom:16px;transition:all .15s}
+.card:hover{border-color:var(--border2)}
+.card-title{font-size:16px;font-weight:700;margin-bottom:4px;display:flex;align-items:center;gap:8px}
+.card-desc{font-size:13px;color:var(--text2);margin-bottom:16px}
+
+/* DROPZONE */
+.dropzone{border:2px dashed var(--border2);border-radius:var(--r);padding:40px 24px;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:16px}
+.dropzone:hover,.dropzone.dragover{border-color:var(--blue);background:var(--blue-bg)}
+.dropzone-icon{font-size:40px;margin-bottom:12px}
+.dropzone-text{font-size:15px;font-weight:600;margin-bottom:4px}
+.dropzone-sub{font-size:12px;color:var(--text3)}
+.dropzone input[type="file"]{display:none}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:10px 20px;border:none;border-radius:var(--r-sm);font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s}
+.btn-primary{background:var(--blue);color:#fff}
+.btn-primary:hover{background:#2563eb;transform:translateY(-1px)}
+.btn-green{background:var(--green);color:#fff}
+.btn-green:hover{background:#059669}
+.btn-outline{background:none;border:1px solid var(--border2);color:var(--text2)}
+.btn-outline:hover{border-color:var(--text3);color:var(--text)}
+.btn-sm{padding:6px 14px;font-size:12px}
+.btn-copy{background:var(--bg3);color:var(--text2);border:1px solid var(--border)}
+.btn-copy:hover{background:var(--bg4);color:var(--text)}
+.btn-copy.copied{background:var(--green-bg);color:var(--green);border-color:var(--green)}
+
+/* FILTER BAR */
+.filter-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.filter-chip{padding:6px 14px;border-radius:var(--r-full);font-size:12px;font-weight:600;border:1px solid var(--border);background:none;color:var(--text3);cursor:pointer;transition:all .15s}
+.filter-chip:hover{border-color:var(--text3);color:var(--text2)}
+.filter-chip.active{border-color:var(--blue);color:var(--blue);background:var(--blue-bg)}
+
+/* SEASON BADGE */
+.season-badge{display:inline-block;padding:3px 10px;border-radius:var(--r-full);font-size:11px;font-weight:700}
+.season-hot{background:var(--red-bg);color:var(--red)}
+.season-good{background:var(--green-bg);color:var(--green)}
+.season-ok{background:var(--yellow-bg);color:var(--yellow)}
+.season-off{background:var(--bg3);color:var(--text3)}
+
+/* PRODUCT TABLE */
+.product-table{width:100%;border-collapse:separate;border-spacing:0;font-size:13px}
+.product-table thead{position:sticky;top:0}
+.product-table th{background:var(--bg3);padding:10px 12px;text-align:left;font-weight:600;color:var(--text2);border-bottom:1px solid var(--border);font-size:12px}
+.product-table th:first-child{border-radius:var(--r-sm) 0 0 0}
+.product-table th:last-child{border-radius:0 var(--r-sm) 0 0}
+.product-table td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:middle}
+.product-table tr:hover td{background:var(--bg3)}
+.product-table .num{text-align:right;font-variant-numeric:tabular-nums;font-weight:500}
+.product-table .positive{color:var(--green)}
+.product-table .negative{color:var(--red)}
+.product-table .warn{color:var(--orange)}
+
+/* STARS */
+.stars{color:var(--yellow);font-size:12px;letter-spacing:1px}
+
+/* MARGIN SIM */
+.margin-sim{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px}
+.margin-card{background:var(--bg3);border-radius:var(--r-sm);padding:10px 12px;text-align:center}
+.margin-card .label{font-size:11px;color:var(--text3);margin-bottom:2px}
+.margin-card .value{font-size:16px;font-weight:700}
+.margin-card .sub{font-size:11px;color:var(--text3)}
+
+/* DETAIL MODAL */
+.modal-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.6);z-index:100;justify-content:center;align-items:center;padding:20px}
+.modal-overlay.show{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);max-width:700px;width:100%;max-height:85vh;overflow-y:auto;padding:28px}
+.modal-close{float:right;background:none;border:none;color:var(--text3);font-size:20px;cursor:pointer;padding:4px 8px}
+.modal-close:hover{color:var(--text)}
+.modal h2{font-size:20px;font-weight:800;margin-bottom:16px}
+.modal h3{font-size:14px;font-weight:700;margin:16px 0 8px;color:var(--text2)}
+
+/* PROMPT BOX */
+.prompt-box{background:var(--bg);border:1px solid var(--border);border-radius:var(--r-sm);padding:14px;font-size:13px;line-height:1.6;white-space:pre-wrap;word-break:break-all;position:relative;margin:8px 0}
+.prompt-box .copy-btn{position:absolute;top:8px;right:8px}
+
+/* SECTION TITLE */
+.section-title{font-size:18px;font-weight:800;margin:32px 0 16px;display:flex;align-items:center;gap:8px}
+
+/* GRID */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+@media(max-width:640px){.grid-2,.grid-3{grid-template-columns:1fr}}
+
+/* STAT */
+.stat{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:16px;text-align:center}
+.stat-value{font-size:24px;font-weight:800}
+.stat-label{font-size:12px;color:var(--text3);margin-top:2px}
+
+/* LOADING */
+.loading{text-align:center;padding:40px;color:var(--text3)}
+.loading .spinner{display:inline-block;width:28px;height:28px;border:3px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin .6s linear infinite;margin-bottom:8px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* EMPTY */
+.empty{text-align:center;padding:60px 20px;color:var(--text3)}
+.empty-icon{font-size:48px;margin-bottom:12px}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--green);color:#fff;padding:10px 24px;border-radius:var(--r-full);font-size:13px;font-weight:600;opacity:0;transition:opacity .3s;z-index:200;pointer-events:none}
+.toast.show{opacity:1}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-badge">19기 AI 세자클</div>
+  <h1>상품 <span>서포터 v2</span></h1>
+  <p>상품 찾기 → 마진 분석 → 등록까지 원스톱</p>
+</div>
+
+<div class="container">
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab active" data-tab="find">🔍 상품 찾기</button>
+    <button class="tab" data-tab="season">📅 시즌 캘린더</button>
+    <button class="tab" data-tab="register">📦 바로 등록</button>
+  </div>
+
+  <!-- TAB 1: 상품 찾기 -->
+  <div class="tab-content active" id="tab-find">
+    <div class="card">
+      <div class="card-title">📂 엑셀 파일로 상품 분석</div>
+      <div class="card-desc">강담유통 엑셀 파일을 넣으면 시즌 매칭 + 마진 시뮬레이션을 자동으로 해줍니다</div>
+      <div class="dropzone" id="dropzone">
+        <div class="dropzone-icon">📄</div>
+        <div class="dropzone-text">엑셀 파일을 여기에 드래그하세요</div>
+        <div class="dropzone-sub">또는 클릭해서 파일 선택 (.xlsx, .xls, .csv)</div>
+        <input type="file" id="fileInput" accept=".xlsx,.xls,.csv">
+      </div>
+    </div>
+
+    <!-- FILTERS -->
+    <div id="filter-section" style="display:none">
+      <div class="filter-bar">
+        <button class="filter-chip active" data-filter="all">전체</button>
+        <button class="filter-chip" data-filter="season">🔥 제철</button>
+        <button class="filter-chip" data-filter="alwayz">올웨이즈 적합</button>
+        <button class="filter-chip" data-filter="toss">토스 적합</button>
+        <button class="filter-chip" data-filter="margin-high">마진율 높은순</button>
+      </div>
+
+      <!-- STATS -->
+      <div class="grid-3" id="stats-grid" style="margin-bottom:16px">
+        <div class="stat"><div class="stat-value" id="stat-total">0</div><div class="stat-label">전체 상품</div></div>
+        <div class="stat"><div class="stat-value positive" id="stat-season">0</div><div class="stat-label">제철 상품</div></div>
+        <div class="stat"><div class="stat-value" id="stat-avg-margin" style="color:var(--blue)">0%</div><div class="stat-label">평균 마진율</div></div>
+      </div>
+
+      <!-- RESULTS TABLE -->
+      <div class="card" style="padding:0;overflow-x:auto">
+        <table class="product-table" id="results-table">
+          <thead>
+            <tr>
+              <th style="width:30px">#</th>
+              <th>상품명</th>
+              <th style="width:70px">원가</th>
+              <th style="width:80px">판매가(기본)</th>
+              <th style="width:65px">마진율</th>
+              <th style="width:60px">시즌</th>
+              <th style="width:110px">플랫폼 적합</th>
+              <th style="width:50px"></th>
+            </tr>
+          </thead>
+          <tbody id="results-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- EMPTY STATE -->
+    <div id="empty-state">
+      <div class="empty">
+        <div class="empty-icon">📊</div>
+        <p>엑셀 파일을 넣으면 자동으로 분석합니다</p>
+        <p style="font-size:12px;margin-top:4px">강담유통 파트너 사이트에서 전체 상품 엑셀을 다운로드하세요</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 2: 시즌 캘린더 -->
+  <div class="tab-content" id="tab-season">
+    <div class="section-title">📅 월별 제철 상품 캘린더</div>
+    <div id="season-calendar"></div>
+
+    <div class="section-title" style="margin-top:32px">🏷️ 공산품 시즌 키워드</div>
+    <div id="goods-season"></div>
+  </div>
+
+  <!-- TAB 3: 바로 등록 -->
+  <div class="tab-content" id="tab-register">
+    <div class="section-title">📦 클로드 코드에 복사해서 바로 등록</div>
+
+    <div class="card">
+      <div class="card-title">🍎 식품 등록 프롬프트</div>
+      <div class="card-desc">아래 내용을 복사 → 클로드 코드에 붙여넣기</div>
+      <div class="prompt-box" id="prompt-food">상호명: [내 상호명]
+상품: [상품명] [용량]
+원가: [매입가]원
+타겟: 올웨이즈 40~60대 여성
+
+이 상품 등록해줘. 상품명, 가격, 옵션, 태그, 상세페이지까지 한번에 만들어줘.
+<button class="btn btn-copy btn-sm copy-btn" onclick="copyText('prompt-food')">복사</button></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📦 공산품 등록 프롬프트</div>
+      <div class="card-desc">도매매에서 찾은 상품 등록할 때</div>
+      <div class="prompt-box" id="prompt-goods">상호명: [내 상호명]
+상품: [상품명]
+원가: [매입가]원
+옵션: [옵션1] / [옵션2]
+도매처: 도매매
+
+이 상품 올웨이즈+토스 둘 다 등록해줘.
+<button class="btn btn-copy btn-sm copy-btn" onclick="copyText('prompt-goods')">복사</button></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🔍 상품 찾기 프롬프트</div>
+      <div class="card-desc">뭘 팔아야 할지 모를 때</div>
+      <div class="prompt-box" id="prompt-find">지금 시즌에 잘 팔리는 식품 추천해줘.
+올웨이즈 기준 8,000~15,000원 가격대.
+마진율 20% 이상.
+CS 리스크 낮은 것 위주로.
+<button class="btn btn-copy btn-sm copy-btn" onclick="copyText('prompt-find')">복사</button></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🏪 도매매 공산품 찾기</div>
+      <div class="card-desc">도매매에서 위탁 상품 찾을 때</div>
+      <div class="prompt-box" id="prompt-domemae">도매매에서 지금 시즌에 잘 팔리는 공산품 찾아줘.
+위탁판매 가능한 것만.
+원가 5,000원 이하, 묶음 세트 가능한 것.
+올웨이즈+토스 둘 다 적합한 것.
+<button class="btn btn-copy btn-sm copy-btn" onclick="copyText('prompt-domemae')">복사</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- DETAIL MODAL -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">&times;</button>
+    <div id="modal-content"></div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">복사되었습니다</div>
+
+<script>
+// ── CONFIG ──
+const FOOD_COMMISSION = { fresh: 0.058, processed: 0.106 };
+const TOSS_COMMISSION = { sales: 0.08, payment: 0.016 };
+const DELIVERY_COST = { light: 3000, medium: 3500, heavy: 4500 };
+const MARGIN_MODES = {
+  food: { aggressive: 1.55, normal: 1.8, relaxed: 2.2 },
+  goods: { aggressive: 1.8, normal: 2.0, relaxed: 2.5 }
+};
+
+// ── SEASON DATA ──
+const FOOD_SEASONS = {
+  1: { fruits: ['딸기','한라봉','천혜향','레드향'], vegs: ['시금치','무','배추','당근'], note: '설 선물세트 시즌' },
+  2: { fruits: ['딸기','한라봉','천혜향'], vegs: ['시금치','무','배추'], note: '설 시즌 마무리' },
+  3: { fruits: ['딸기','한라봉','금귤'], vegs: ['냉이','달래','두릅','미나리'], note: '환절기 비타민' },
+  4: { fruits: ['참외','대저토마토','딸기'], vegs: ['봄동','미나리','두릅'], note: '봄 제철 시작' },
+  5: { fruits: ['참외','수박','체리','매실'], vegs: ['양파','감자','마늘'], note: '어린이날/어버이날' },
+  6: { fruits: ['수박','참외','자두','블루베리'], vegs: ['양파','감자','옥수수'], note: '여름 시작' },
+  7: { fruits: ['수박','복숭아','자두','포도'], vegs: ['옥수수','토마토'], note: '한여름' },
+  8: { fruits: ['복숭아','포도','샤인머스캣'], vegs: ['고구마','옥수수'], note: '추석 준비' },
+  9: { fruits: ['사과','배','샤인머스캣','포도'], vegs: ['고구마','밤','대추'], note: '추석 선물' },
+  10: { fruits: ['사과','배','감','귤'], vegs: ['고구마','밤','잣'], note: '가을 과일' },
+  11: { fruits: ['귤','감','사과'], vegs: ['배추','무','파','고추'], note: '김장 시즌' },
+  12: { fruits: ['귤','딸기','한라봉'], vegs: ['배추','무'], note: '연말/크리스마스' }
+};
+
+const GOODS_SEASONS = {
+  '3~4월': ['황사마스크','미세먼지 관련','원예용품','캠핑용품'],
+  '4~5월': ['버킷햇','자외선차단마스크','쿨토시','팔토시','양산','UV차단'],
+  '6~8월': ['선풍기','냉감패드','쿨링스프레이','아이스팩','모기퇴치','물놀이'],
+  '9~10월': ['핫팩','김장용품','보온물병','기모양말'],
+  '11~2월': ['핫팩','방한마스크','기모장갑','전기장판','크리스마스용품'],
+  '연중': ['주방용품','생활용품','위생용품','수납정리']
+};
+
+const currentMonth = new Date().getMonth() + 1;
+const seasonData = FOOD_SEASONS[currentMonth] || FOOD_SEASONS[1];
+const allSeasonKeywords = [...seasonData.fruits, ...seasonData.vegs].map(s => s.toLowerCase());
+
+// ── TAB SWITCHING ──
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+  });
+});
+
+// ── FILE DROP/SELECT ──
+const dropzone = document.getElementById('dropzone');
+const fileInput = document.getElementById('fileInput');
+
+dropzone.addEventListener('click', () => fileInput.click());
+dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('dragover'); });
+dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
+dropzone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropzone.classList.remove('dragover');
+  handleFile(e.dataTransfer.files[0]);
+});
+fileInput.addEventListener('change', e => { if(e.target.files[0]) handleFile(e.target.files[0]); });
+
+// ── PARSE & ANALYZE ──
+let allProducts = [];
+
+function handleFile(file, colMap) {
+  dropzone.innerHTML = '<div class="loading"><div class="spinner"></div><div>서버에서 분석 중...</div></div>';
+
+  const formData = new FormData();
+  formData.append('file', file);
+  if (colMap) formData.append('colMap', JSON.stringify(colMap));
+
+  fetch('/api/analyze', { method: 'POST', body: formData })
+    .then(r => r.json())
+    .then(result => {
+      if (result.error === 'column_mapping_needed') {
+        showColumnMapper(result.headers, result.preview, file.name, file);
+        return;
+      }
+      if (result.error) {
+        dropzone.innerHTML = `<div style="color:var(--red)">${result.error}</div>`;
+        return;
+      }
+
+      allProducts = result.products || [];
+
+      if (allProducts.length === 0) {
+        dropzone.innerHTML = `<div style="color:var(--orange)">
+          <div style="font-size:24px;margin-bottom:8px">⚠️</div>
+          <div style="font-weight:700">분석 가능한 상품이 없습니다</div>
+          <div style="font-size:12px;color:var(--text3)">원가가 0이거나 비어있는 행은 건너뜁니다</div>
+          <div style="font-size:12px;color:var(--text3)">감지된 컬럼: ${JSON.stringify(result.detected)}</div>
+        </div>`;
+        return;
+      }
+
+      renderResults(allProducts);
+      dropzone.innerHTML = `<div class="dropzone-icon">✅</div>
+        <div class="dropzone-text">${file.name} — ${allProducts.length}개 상품 분석 완료 (서버 저장됨)</div>
+        <div class="dropzone-sub" style="color:var(--green)">✅ 클로드 코드에서 "분석 결과 보여줘"로 연동 가능</div>
+        <input type="file" id="fileInput2" accept=".xlsx,.xls,.csv" style="display:none">`;
+      document.getElementById('fileInput2')?.addEventListener('change', e => { if(e.target.files[0]) handleFile(e.target.files[0]); });
+      dropzone.onclick = () => document.getElementById('fileInput2')?.click();
+    })
+    .catch(err => {
+      dropzone.innerHTML = `<div style="color:var(--red)">서버 연결 오류: ${err.message}<br><span style="font-size:12px">서버가 실행 중인지 확인하세요 (bun run server.ts)</span></div>`;
+    });
+}
+
+function findColumn(headers, keywords) {
+  for (const h of headers) {
+    const lower = (h+'').toLowerCase().replace(/\s/g,'');
+    for (const kw of keywords) {
+      if (lower.includes(kw)) return h;
+    }
+  }
+  return null;
+}
+
+// ── COLUMN MAPPER UI ──
+let pendingFile = null;
+
+function showColumnMapper(headers, preview, fileName, file) {
+  pendingFile = file;
+
+  const optionsHTML = (selected) => headers.map(h => {
+    const sel = h === selected ? 'selected' : '';
+    const pv = preview[0] ? (preview[0][h]+'').substring(0, 20) : '';
+    return `<option value="${escHTML(h)}" ${sel}>${escHTML(h)} (예: ${escHTML(pv)})</option>`;
+  }).join('');
+
+  dropzone.innerHTML = `
+    <div style="text-align:left;padding:8px">
+      <div style="font-size:16px;font-weight:700;margin-bottom:4px">📋 컬럼을 선택해주세요</div>
+      <div style="font-size:12px;color:var(--text3);margin-bottom:16px">${fileName} — 컬럼을 자동으로 못 찾았습니다. 직접 선택해주세요.</div>
+
+      <div style="margin-bottom:12px">
+        <label style="font-size:13px;font-weight:600;display:block;margin-bottom:4px">📌 상품명 컬럼 (필수)</label>
+        <select id="col-name" style="width:100%;padding:8px;border-radius:6px;border:1px solid var(--border2);background:var(--bg3);color:var(--text);font-size:13px">
+          <option value="">-- 선택 --</option>
+          ${optionsHTML(null)}
+        </select>
+      </div>
+
+      <div style="margin-bottom:12px">
+        <label style="font-size:13px;font-weight:600;display:block;margin-bottom:4px">💰 원가(매입가) 컬럼 (필수)</label>
+        <select id="col-price" style="width:100%;padding:8px;border-radius:6px;border:1px solid var(--border2);background:var(--bg3);color:var(--text);font-size:13px">
+          <option value="">-- 선택 --</option>
+          ${optionsHTML(null)}
+        </select>
+      </div>
+
+      <div style="margin-bottom:12px">
+        <label style="font-size:13px;font-weight:600;display:block;margin-bottom:4px">📂 카테고리 컬럼 (선택)</label>
+        <select id="col-cat" style="width:100%;padding:8px;border-radius:6px;border:1px solid var(--border2);background:var(--bg3);color:var(--text);font-size:13px">
+          <option value="">-- 없음 --</option>
+          ${optionsHTML(null)}
+        </select>
+      </div>
+
+      <div style="margin-bottom:16px">
+        <label style="font-size:13px;font-weight:600;display:block;margin-bottom:4px">📏 용량/규격 컬럼 (선택)</label>
+        <select id="col-weight" style="width:100%;padding:8px;border-radius:6px;border:1px solid var(--border2);background:var(--bg3);color:var(--text);font-size:13px">
+          <option value="">-- 없음 --</option>
+          ${optionsHTML(null)}
+        </select>
+      </div>
+
+      <div style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:10px;margin-bottom:16px;font-size:11px;color:var(--text3);max-height:100px;overflow-y:auto">
+        <div style="font-weight:600;margin-bottom:4px">미리보기 (첫 3행):</div>
+        ${preview.map((r,i) => `<div>${i+1}. ${headers.slice(0,5).map(h => `${h}=${(r[h]+'').substring(0,15)}`).join(' | ')}</div>`).join('')}
+      </div>
+
+      <button class="btn btn-primary" style="width:100%" onclick="applyColumnMapping()">분석 시작</button>
+    </div>
+  `;
+  dropzone.style.cursor = 'default';
+  dropzone.onclick = null;
+}
+
+function applyColumnMapping() {
+  const nameCol = document.getElementById('col-name').value;
+  const priceCol = document.getElementById('col-price').value;
+  const catCol = document.getElementById('col-cat').value;
+  const weightCol = document.getElementById('col-weight').value;
+
+  if (!nameCol || !priceCol) {
+    alert('상품명과 원가 컬럼은 필수입니다.');
+    return;
+  }
+
+  const colMap = { name: nameCol, price: priceCol };
+  if (catCol) colMap.cat = catCol;
+  if (weightCol) colMap.weight = weightCol;
+
+  if (pendingFile) {
+    handleFile(pendingFile, colMap);
+  }
+}
+
+function analyzeProducts(data) {
+  const headers = Object.keys(data[0]);
+
+  const nameCol = findColumn(headers, ['상품명','품명','제품명','이름','품목','name','상품']);
+  const priceCol = findColumn(headers, ['원가','매입가','공급가','단가','도매가','가격','cost','price','입금가']);
+  const catCol = findColumn(headers, ['카테고리','분류','품목','종류','category']);
+  const weightCol = findColumn(headers, ['용량','규격','중량','무게','사이즈','weight','단위']);
+
+  if (!nameCol) {
+    alert('상품명 컬럼을 찾을 수 없습니다.\n컬럼에 "상품명", "품명", "제품명" 등이 있어야 합니다.');
+    return [];
+  }
+
+  const products = [];
+
+  for (const row of data) {
+    const name = (row[nameCol] + '').trim();
+    if (!name || name === '') continue;
+
+    let cost = 0;
+    if (priceCol) {
+      cost = parseInt((row[priceCol]+'').replace(/[^0-9]/g,'')) || 0;
+    }
+    if (cost <= 0) continue;
+
+    const category = catCol ? (row[catCol]+'').trim() : '';
+    const weight = weightCol ? (row[weightCol]+'').trim() : '';
+
+    const isFresh = checkFresh(name, category);
+    const commissionRate = isFresh ? FOOD_COMMISSION.fresh : FOOD_COMMISSION.processed;
+    const mode = MARGIN_MODES.food;
+
+    const priceNormal = prettyPrice(cost * mode.normal);
+    const priceAggressive = prettyPrice(cost * mode.aggressive);
+    const priceRelaxed = prettyPrice(cost * mode.relaxed);
+
+    const deliveryCost = cost > 10000 ? DELIVERY_COST.heavy : (cost > 5000 ? DELIVERY_COST.medium : DELIVERY_COST.light);
+
+    const marginNormal = priceNormal - cost - (priceNormal * commissionRate) - deliveryCost;
+    const marginRateNormal = ((marginNormal / priceNormal) * 100);
+
+    const marginAggressive = priceAggressive - cost - (priceAggressive * commissionRate) - deliveryCost;
+    const marginRateAggressive = ((marginAggressive / priceAggressive) * 100);
+
+    const marginRelaxed = priceRelaxed - cost - (priceRelaxed * commissionRate) - deliveryCost;
+    const marginRateRelaxed = ((marginRelaxed / priceRelaxed) * 100);
+
+    // Toss margins
+    const tossMarginNormal = priceNormal - cost - (priceNormal * TOSS_COMMISSION.sales) - (priceNormal * TOSS_COMMISSION.payment) - deliveryCost;
+    const tossMarginRateNormal = ((tossMarginNormal / priceNormal) * 100);
+
+    const seasonScore = getSeasonScore(name);
+    const alwayzFit = getAlwayzFit(priceNormal, marginRateNormal);
+    const tossFit = getTossFit(priceNormal, tossMarginRateNormal);
+
+    products.push({
+      name, cost, category, weight,
+      isFresh, commissionRate, deliveryCost,
+      prices: { aggressive: priceAggressive, normal: priceNormal, relaxed: priceRelaxed },
+      margins: {
+        aggressive: { amount: marginAggressive, rate: marginRateAggressive },
+        normal: { amount: marginNormal, rate: marginRateNormal },
+        relaxed: { amount: marginRelaxed, rate: marginRateRelaxed }
+      },
+      toss: {
+        margin: tossMarginNormal, rate: tossMarginRateNormal,
+        adMargin: priceNormal - cost - (priceNormal * TOSS_COMMISSION.payment) - deliveryCost,
+        adRate: ((priceNormal - cost - (priceNormal * TOSS_COMMISSION.payment) - deliveryCost) / priceNormal * 100)
+      },
+      seasonScore, alwayzFit, tossFit
+    });
+  }
+
+  products.sort((a, b) => b.margins.normal.rate - a.margins.normal.rate);
+  return products;
+}
+
+function checkFresh(name, cat) {
+  const freshKW = ['과일','채소','야채','감자','고구마','양파','사과','배','딸기','수박','참외','토마토','포도',
+    '복숭아','감귤','귤','한라봉','천혜향','레드향','자두','체리','블루베리','매실','밤','대추',
+    '시금치','무','배추','당근','파','마늘','옥수수','고추','버섯','미나리','두릅','냉이','달래',
+    '생선','수산','해산','새우','오징어','고등어','갈치','육류','한우','돼지','닭','오리',
+    '신선','제철','산지직송','냉장','냉동'];
+  const lower = (name + ' ' + cat).toLowerCase();
+  return freshKW.some(kw => lower.includes(kw));
+}
+
+function getSeasonScore(name) {
+  const lower = name.toLowerCase();
+  let score = 0;
+  for (const kw of allSeasonKeywords) {
+    if (lower.includes(kw)) score += 2;
+  }
+  return Math.min(score, 5);
+}
+
+function getAlwayzFit(price, marginRate) {
+  let score = 0;
+  if (price >= 8000 && price <= 15000) score += 2;
+  else if (price >= 5000 && price <= 20000) score += 1;
+  if (marginRate >= 25) score += 2;
+  else if (marginRate >= 15) score += 1;
+  return Math.min(score, 5);
+}
+
+function getTossFit(price, marginRate) {
+  let score = 0;
+  if (price >= 15000 && price <= 35000) score += 2;
+  else if (price >= 10000 && price <= 40000) score += 1;
+  if (marginRate >= 20) score += 2;
+  else if (marginRate >= 10) score += 1;
+  return Math.min(score, 5);
+}
+
+function prettyPrice(raw) {
+  const rounded = Math.round(raw / 100) * 100;
+  const last3 = rounded % 1000;
+  if (last3 >= 750) return rounded - last3 + 900;
+  if (last3 >= 250) return rounded - last3 + 800;
+  return rounded - last3 + 900 - 1000;
+}
+
+function formatNum(n) {
+  return Math.round(n).toLocaleString();
+}
+
+function seasonLabel(score) {
+  if (score >= 4) return '<span class="season-badge season-hot">🔥 제철</span>';
+  if (score >= 2) return '<span class="season-badge season-good">✅ 적합</span>';
+  if (score >= 1) return '<span class="season-badge season-ok">⚡ 보통</span>';
+  return '<span class="season-badge season-off">— 비시즌</span>';
+}
+
+function starsHTML(score, max=5) {
+  return '★'.repeat(Math.min(score,max)) + '☆'.repeat(Math.max(0,max-score));
+}
+
+// ── RENDER ──
+function renderResults(products) {
+  document.getElementById('empty-state').style.display = 'none';
+  document.getElementById('filter-section').style.display = 'block';
+
+  document.getElementById('stat-total').textContent = products.length;
+  const seasonCount = products.filter(p => p.seasonScore >= 2).length;
+  document.getElementById('stat-season').textContent = seasonCount;
+  const avgMargin = products.reduce((s,p) => s + p.margins.normal.rate, 0) / (products.length||1);
+  document.getElementById('stat-avg-margin').textContent = avgMargin.toFixed(1) + '%';
+
+  renderTable(products);
+}
+
+function renderTable(products) {
+  const tbody = document.getElementById('results-body');
+  tbody.innerHTML = '';
+
+  products.forEach((p, i) => {
+    const marginClass = p.margins.normal.rate >= 20 ? 'positive' : (p.margins.normal.rate >= 10 ? 'warn' : 'negative');
+    const tr = document.createElement('tr');
+    tr.style.cursor = 'pointer';
+    tr.onclick = () => showDetail(p);
+    tr.innerHTML = `
+      <td style="color:var(--text3)">${i+1}</td>
+      <td><strong>${escHTML(p.name)}</strong>${p.weight ? '<br><span style="font-size:11px;color:var(--text3)">'+escHTML(p.weight)+'</span>' : ''}</td>
+      <td class="num">${formatNum(p.cost)}원</td>
+      <td class="num" style="font-weight:700">${formatNum(p.prices.normal)}원</td>
+      <td class="num ${marginClass}">${p.margins.normal.rate.toFixed(1)}%</td>
+      <td>${seasonLabel(p.seasonScore)}</td>
+      <td><span style="font-size:11px">올 <span class="stars">${starsHTML(p.alwayzFit,4)}</span><br>토 <span class="stars">${starsHTML(p.tossFit,4)}</span></span></td>
+      <td><button class="btn btn-sm btn-outline" onclick="event.stopPropagation();showDetail(${JSON.stringify(p).replace(/"/g,'&quot;')})">상세</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function escHTML(s) { return (s+'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// ── FILTER ──
+document.querySelectorAll('.filter-chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+
+    let filtered = [...allProducts];
+    switch(chip.dataset.filter) {
+      case 'season': filtered = filtered.filter(p => p.seasonScore >= 2); break;
+      case 'alwayz': filtered = filtered.filter(p => p.alwayzFit >= 3); break;
+      case 'toss': filtered = filtered.filter(p => p.tossFit >= 3); break;
+      case 'margin-high': filtered.sort((a,b) => b.margins.normal.rate - a.margins.normal.rate); break;
+    }
+    renderTable(filtered);
+  });
+});
+
+// ── DETAIL MODAL ──
+function showDetail(product) {
+  const p = typeof product === 'string' ? JSON.parse(product) : product;
+  const modal = document.getElementById('modal');
+  const content = document.getElementById('modal-content');
+
+  const commLabel = p.isFresh ? '신선 5.8%' : '가공 10.6%';
+
+  content.innerHTML = `
+    <h2>${escHTML(p.name)}</h2>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">
+      ${seasonLabel(p.seasonScore)}
+      <span class="season-badge" style="background:var(--blue-bg);color:var(--blue)">수수료 ${commLabel}</span>
+      <span class="season-badge" style="background:var(--purple-bg);color:var(--purple)">택배비 ${formatNum(p.deliveryCost)}원</span>
+    </div>
+
+    <h3>💰 올웨이즈 마진 시뮬레이션</h3>
+    <div class="margin-sim">
+      <div class="margin-card">
+        <div class="label">공격적 (x1.55)</div>
+        <div class="value" style="color:${p.margins.aggressive.rate >= 15 ? 'var(--green)' : 'var(--red)'}">${p.margins.aggressive.rate.toFixed(1)}%</div>
+        <div class="sub">${formatNum(p.prices.aggressive)}원 → 마진 ${formatNum(p.margins.aggressive.amount)}원</div>
+      </div>
+      <div class="margin-card" style="border:1px solid var(--blue);background:var(--blue-bg)">
+        <div class="label">기본 (x1.8)</div>
+        <div class="value" style="color:${p.margins.normal.rate >= 15 ? 'var(--green)' : 'var(--red)'}">${p.margins.normal.rate.toFixed(1)}%</div>
+        <div class="sub">${formatNum(p.prices.normal)}원 → 마진 ${formatNum(p.margins.normal.amount)}원</div>
+      </div>
+      <div class="margin-card">
+        <div class="label">널널 (x2.2)</div>
+        <div class="value" style="color:var(--green)">${p.margins.relaxed.rate.toFixed(1)}%</div>
+        <div class="sub">${formatNum(p.prices.relaxed)}원 → 마진 ${formatNum(p.margins.relaxed.amount)}원</div>
+      </div>
+    </div>
+
+    <h3>🟣 토스 마진 시뮬레이션</h3>
+    <div class="grid-2">
+      <div class="margin-card">
+        <div class="label">일반 판매 (수수료 8%+1.6%)</div>
+        <div class="value" style="color:${p.toss.rate >= 15 ? 'var(--green)' : 'var(--red)'}">${p.toss.rate.toFixed(1)}%</div>
+        <div class="sub">마진 ${formatNum(p.toss.margin)}원</div>
+      </div>
+      <div class="margin-card" style="border:1px solid var(--green);background:var(--green-bg)">
+        <div class="label">광고 판매 (수수료 0%+1.6%) 🔥</div>
+        <div class="value" style="color:var(--green)">${p.toss.adRate.toFixed(1)}%</div>
+        <div class="sub">마진 ${formatNum(p.toss.adMargin)}원</div>
+      </div>
+    </div>
+
+    <h3>📊 플랫폼 적합도</h3>
+    <div class="grid-2">
+      <div class="margin-card">
+        <div class="label">올웨이즈</div>
+        <div class="value stars">${starsHTML(p.alwayzFit, 5)}</div>
+        <div class="sub">${p.alwayzFit >= 3 ? '적합 ✅' : (p.alwayzFit >= 2 ? '보통' : '부적합')}</div>
+      </div>
+      <div class="margin-card">
+        <div class="label">토스쇼핑</div>
+        <div class="value stars">${starsHTML(p.tossFit, 5)}</div>
+        <div class="sub">${p.tossFit >= 3 ? '적합 ✅' : (p.tossFit >= 2 ? '보통' : '부적합')}</div>
+      </div>
+    </div>
+
+    <h3>📋 클로드 코드 연동</h3>
+    <div style="display:flex;gap:8px;margin-bottom:12px">
+      <button class="btn btn-green" onclick="selectProduct(${JSON.stringify(p).replace(/"/g,'&quot;')})">✅ 이 상품 선택 (클로드 코드 연동)</button>
+      <button class="btn btn-copy" onclick="copyText('prompt-detail')">📋 프롬프트 복사</button>
+    </div>
+    <div class="prompt-box" id="prompt-detail">상호명: [내 상호명]
+상품: ${p.name}${p.weight ? ' ' + p.weight : ''}
+원가: ${formatNum(p.cost)}원
+
+이 상품 등록해줘. 상품명, 가격, 옵션, 태그, 상세페이지까지 한번에 만들어줘.
+올웨이즈+토스 둘 다.</div>
+    <div style="font-size:11px;color:var(--text3);margin-top:8px">
+      💡 "이 상품 선택" 클릭 후 → 클로드 코드에서 "선택한 상품 등록해줘"라고 입력
+    </div>
+  `;
+
+  modal.classList.add('show');
+}
+
+function closeModal() { document.getElementById('modal').classList.remove('show'); }
+document.getElementById('modal').addEventListener('click', e => { if(e.target === e.currentTarget) closeModal(); });
+
+// ── SEASON CALENDAR RENDER ──
+function renderSeasonCalendar() {
+  const container = document.getElementById('season-calendar');
+  let html = '';
+
+  for (let m = 1; m <= 12; m++) {
+    const s = FOOD_SEASONS[m];
+    const isCurrent = m === currentMonth;
+    html += `<div class="card" style="${isCurrent ? 'border-color:var(--blue);box-shadow:0 0 12px rgba(59,130,246,.15)' : ''}">
+      <div class="card-title">${isCurrent ? '👉 ' : ''}${m}월 ${isCurrent ? '<span class="season-badge season-hot">지금!</span>' : ''}</div>
+      <div class="card-desc">${s.note}</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        ${s.fruits.map(f => `<span style="padding:3px 10px;background:var(--red-bg);color:var(--red);border-radius:var(--r-full);font-size:12px;font-weight:600">🍎 ${f}</span>`).join('')}
+        ${s.vegs.map(v => `<span style="padding:3px 10px;background:var(--green-bg);color:var(--green);border-radius:var(--r-full);font-size:12px;font-weight:600">🥬 ${v}</span>`).join('')}
+      </div>
+    </div>`;
+  }
+  container.innerHTML = html;
+
+  const goodsContainer = document.getElementById('goods-season');
+  let ghtml = '';
+  for (const [period, items] of Object.entries(GOODS_SEASONS)) {
+    ghtml += `<div class="card">
+      <div class="card-title">📦 ${period}</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        ${items.map(i => `<span style="padding:3px 10px;background:var(--purple-bg);color:var(--purple);border-radius:var(--r-full);font-size:12px;font-weight:600">${i}</span>`).join('')}
+      </div>
+    </div>`;
+  }
+  goodsContainer.innerHTML = ghtml;
+}
+renderSeasonCalendar();
+
+// ── SELECT PRODUCT (서버 저장 → 클로드 코드 연동) ──
+function selectProduct(product) {
+  const p = typeof product === 'string' ? JSON.parse(product) : product;
+  fetch('/api/select', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(p)
+  }).then(r => r.json()).then(() => {
+    showToast('✅ 상품 선택 완료 — 클로드 코드에서 "선택한 상품 등록해줘"');
+    closeModal();
+  }).catch(() => {
+    showToast('서버 연결 오류');
+  });
+}
+
+// ── COPY ──
+function copyText(id) {
+  const el = document.getElementById(id);
+  const text = el.textContent.replace('복사','').replace('복사되었습니다','').trim();
+  navigator.clipboard.writeText(text).then(() => {
+    showToast('복사되었습니다');
+  });
+}
+
+function showToast(msg) {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 2000);
+}
+</script>
+</body>
+</html>
