@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>광고 성과 보고서 | {{PERIOD}}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;600&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+<style>
+  /* ──────────────────────────────────────
+     DESIGN TOKENS
+     - 다크 테마 기반
+     - 컬러코딩: 빨강=위험, 주황=경고, 초록=양호, 파랑=정보
+     ────────────────────────────────────── */
+  :root {
+    --bg: #0a0a0f;
+    --bg-card: #12121a;
+    --bg-card-hover: #1a1a26;
+    --border: #1e1e2e;
+    --text: #e8e6e3;
+    --text-dim: #6b6b7b;
+    --text-muted: #44445a;
+    --accent-red: #ff3b5c;
+    --accent-red-glow: rgba(255,59,92,0.15);
+    --accent-orange: #ff8c42;
+    --accent-orange-glow: rgba(255,140,66,0.12);
+    --accent-yellow: #ffd166;
+    --accent-green: #06d6a0;
+    --accent-green-glow: rgba(6,214,160,0.12);
+    --accent-blue: #4ea8de;
+    --accent-purple: #9b72cf;
+    --gradient-danger: linear-gradient(135deg, #ff3b5c, #ff6b81);
+    --gradient-warn: linear-gradient(135deg, #ff8c42, #ffd166);
+    --gradient-ok: linear-gradient(135deg, #06d6a0, #4ea8de);
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Noto Sans KR', sans-serif;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* Noise texture overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px 24px 80px;
+  }
+
+  /* ─── HEADER ─── */
+  .header {
+    text-align: center;
+    margin-bottom: 64px;
+    position: relative;
+  }
+
+  .header::after {
+    content: '';
+    position: absolute;
+    bottom: -32px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 120px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent-red), transparent);
+  }
+
+  .header .tag {
+    display: inline-block;
+    padding: 6px 16px;
+    border: 1px solid var(--accent-red);
+    border-radius: 4px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--accent-red);
+    margin-bottom: 20px;
+    animation: fadeInDown 0.6s ease;
+  }
+
+  .header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(36px, 5vw, 56px);
+    font-weight: 900;
+    letter-spacing: -1px;
+    background: linear-gradient(135deg, #fff 30%, var(--accent-red));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: fadeInDown 0.6s ease 0.1s both;
+  }
+
+  .header .period {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    color: var(--text-dim);
+    margin-top: 12px;
+    animation: fadeInDown 0.6s ease 0.2s both;
+  }
+
+  /* ─── ALERT BANNER ─── */
+  .alert-banner {
+    background: linear-gradient(135deg, rgba(255,59,92,0.08), rgba(255,59,92,0.02));
+    border: 1px solid rgba(255,59,92,0.25);
+    border-radius: 12px;
+    padding: 28px 32px;
+    margin-bottom: 48px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    animation: fadeInUp 0.6s ease 0.3s both;
+  }
+
+  /* 경고가 아닌 경우 (성과 양호) */
+  .alert-banner.ok {
+    background: linear-gradient(135deg, rgba(6,214,160,0.08), rgba(6,214,160,0.02));
+    border-color: rgba(6,214,160,0.25);
+  }
+
+  .alert-banner.warn {
+    background: linear-gradient(135deg, rgba(255,140,66,0.08), rgba(255,140,66,0.02));
+    border-color: rgba(255,140,66,0.25);
+  }
+
+  .alert-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--gradient-danger);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    flex-shrink: 0;
+    animation: pulse 2s ease-in-out infinite;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    color: #fff;
+  }
+
+  .alert-banner.ok .alert-icon { background: var(--gradient-ok); }
+  .alert-banner.warn .alert-icon { background: var(--gradient-warn); }
+
+  .alert-content h3 {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--accent-red);
+    margin-bottom: 4px;
+  }
+
+  .alert-banner.ok .alert-content h3 { color: var(--accent-green); }
+  .alert-banner.warn .alert-content h3 { color: var(--accent-orange); }
+
+  .alert-content p {
+    font-size: 14px;
+    color: var(--text-dim);
+    line-height: 1.7;
+  }
+
+  /* ─── KPI CARDS ─── */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    margin-bottom: 48px;
+  }
+
+  .kpi-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    animation: fadeInUp 0.5s ease both;
+  }
+
+  .kpi-card:hover {
+    background: var(--bg-card-hover);
+    transform: translateY(-2px);
+    border-color: rgba(255,255,255,0.08);
+  }
+
+  .kpi-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+  }
+
+  .kpi-card.danger::before { background: var(--gradient-danger); }
+  .kpi-card.warn::before { background: var(--gradient-warn); }
+  .kpi-card.ok::before { background: var(--gradient-ok); }
+  .kpi-card.info::before { background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple)); }
+
+  .kpi-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+  }
+
+  .kpi-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 28px;
+    font-weight: 600;
+    line-height: 1.2;
+  }
+
+  .kpi-sub {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 6px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .kpi-value.danger { color: var(--accent-red); }
+  .kpi-value.warn { color: var(--accent-orange); }
+  .kpi-value.ok { color: var(--accent-green); }
+
+  /* ─── SECTION ─── */
+  .section {
+    margin-bottom: 48px;
+    animation: fadeInUp 0.6s ease both;
+  }
+
+  .section-title {
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    color: var(--text-dim);
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* ─── CHART CONTAINER ─── */
+  .chart-container {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px;
+    margin-bottom: 20px;
+  }
+
+  .chart-title {
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+
+  .chart-subtitle {
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-bottom: 24px;
+  }
+
+  /* ─── CAMPAIGN COMPARISON CARDS ─── */
+  .campaign-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 20px;
+    margin-bottom: 48px;
+  }
+
+  .campaign-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px;
+  }
+
+  .campaign-card h3 {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+
+  .campaign-card .product {
+    font-size: 13px;
+    color: var(--text-dim);
+    margin-bottom: 20px;
+  }
+
+  .stat-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+  }
+
+  .stat-row:last-child { border-bottom: none; }
+
+  .stat-label {
+    font-size: 13px;
+    color: var(--text-dim);
+  }
+
+  .stat-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  /* ─── BAR CHART ─── */
+  .bar-chart {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .bar-item {
+    display: grid;
+    grid-template-columns: 140px 1fr 70px;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .bar-label {
+    font-size: 12px;
+    color: var(--text-dim);
+    text-align: right;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .bar-track {
+    height: 24px;
+    background: rgba(255,255,255,0.03);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    animation: barGrow 1s ease both;
+  }
+
+  .bar-fill.red { background: var(--gradient-danger); }
+  .bar-fill.orange { background: var(--gradient-warn); }
+  .bar-fill.blue { background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple)); }
+  .bar-fill.green { background: var(--gradient-ok); }
+
+  .bar-number {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--text-dim);
+    text-align: right;
+  }
+
+  /* ─── DAILY TREND ─── */
+  .trend-chart {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    height: 160px;
+    padding: 16px 0;
+  }
+
+  .trend-day {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    height: 100%;
+    justify-content: flex-end;
+  }
+
+  .trend-bar-wrap {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    flex: 1;
+    justify-content: flex-end;
+  }
+
+  .trend-bar {
+    width: 70%;
+    max-width: 48px;
+    border-radius: 4px 4px 0 0;
+    min-height: 2px;
+  }
+
+  .trend-bar.impressions { background: var(--accent-blue); opacity: 0.7; }
+  .trend-bar.clicks { background: var(--accent-orange); }
+
+  .trend-date {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+
+  .trend-val {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+  }
+
+  .trend-legend {
+    display: flex;
+    gap: 24px;
+    justify-content: center;
+    margin-top: 12px;
+  }
+
+  .trend-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+
+  .legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+  }
+
+  .legend-dot.blue { background: var(--accent-blue); opacity: 0.7; }
+  .legend-dot.orange { background: var(--accent-orange); }
+
+  /* ─── DATA TABLE ─── */
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+
+  .data-table thead th {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-muted);
+    padding: 12px 14px;
+    text-align: right;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+
+  .data-table thead th:first-child { text-align: left; }
+
+  .data-table tbody td {
+    padding: 12px 14px;
+    text-align: right;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+  }
+
+  .data-table tbody td:first-child {
+    text-align: left;
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 13px;
+    color: var(--text);
+  }
+
+  .data-table tbody tr:hover { background: rgba(255,255,255,0.02); }
+
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+
+  .badge.danger { background: rgba(255,59,92,0.15); color: var(--accent-red); }
+  .badge.warn { background: rgba(255,140,66,0.12); color: var(--accent-orange); }
+  .badge.ok { background: rgba(6,214,160,0.12); color: var(--accent-green); }
+
+  /* ─── FUNNEL ─── */
+  .funnel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+    margin: 24px 0;
+  }
+
+  .funnel-step {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 18px 0;
+    width: 100%;
+  }
+
+  .funnel-bar {
+    height: 44px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .funnel-bar span { font-size: 13px; font-weight: 500; white-space: nowrap; }
+  .funnel-bar .num { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 15px; }
+
+  .funnel-arrow {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 18px;
+    padding: 4px 0;
+  }
+
+  /* ─── IMPROVE CARDS ─── */
+  .improve-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    gap: 16px;
+  }
+
+  .improve-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .improve-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+  }
+
+  .improve-card.critical::before { background: var(--gradient-danger); }
+  .improve-card.warning::before { background: var(--gradient-warn); }
+  .improve-card.info::before { background: var(--gradient-ok); }
+
+  .improve-priority {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 10px;
+  }
+
+  .improve-card.critical .improve-priority { color: var(--accent-red); }
+  .improve-card.warning .improve-priority { color: var(--accent-orange); }
+  .improve-card.info .improve-priority { color: var(--accent-green); }
+
+  .improve-card h4 { font-size: 16px; font-weight: 700; margin-bottom: 10px; }
+  .improve-card p { font-size: 13px; color: var(--text-dim); line-height: 1.8; }
+
+  .improve-card ul { margin-top: 10px; padding-left: 0; list-style: none; }
+
+  .improve-card li {
+    font-size: 13px;
+    color: var(--text-dim);
+    padding: 4px 0 4px 18px;
+    position: relative;
+    line-height: 1.7;
+  }
+
+  .improve-card.critical li::before { content: '!'; color: var(--accent-red); position: absolute; left: 0; font-weight: 700; }
+  .improve-card.warning li::before { content: '~'; color: var(--accent-orange); position: absolute; left: 0; font-weight: 700; }
+  .improve-card.info li::before { content: '+'; color: var(--accent-green); position: absolute; left: 0; font-weight: 700; }
+
+  /* ─── ACTION ITEMS ─── */
+  .action-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 24px;
+  }
+
+  .action-item {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 24px;
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .action-number {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  .action-item:nth-child(1) .action-number { background: rgba(255,59,92,0.15); color: var(--accent-red); }
+  .action-item:nth-child(2) .action-number { background: rgba(255,140,66,0.12); color: var(--accent-orange); }
+  .action-item:nth-child(3) .action-number { background: rgba(255,209,102,0.12); color: var(--accent-yellow); }
+  .action-item:nth-child(4) .action-number { background: rgba(6,214,160,0.12); color: var(--accent-green); }
+  .action-item:nth-child(5) .action-number { background: rgba(78,168,222,0.12); color: var(--accent-blue); }
+
+  .action-text h5 { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+  .action-text p { font-size: 13px; color: var(--text-dim); line-height: 1.7; }
+
+  /* ─── FOOTER ─── */
+  .footer {
+    text-align: center;
+    padding: 48px 0 0;
+    border-top: 1px solid var(--border);
+    margin-top: 48px;
+  }
+
+  .footer p {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* ─── ANIMATIONS ─── */
+  @keyframes fadeInDown {
+    from { opacity: 0; transform: translateY(-16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes barGrow {
+    from { width: 0; }
+  }
+
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(255,59,92,0.4); }
+    50% { box-shadow: 0 0 0 12px rgba(255,59,92,0); }
+  }
+
+  @media (max-width: 768px) {
+    .campaign-grid { grid-template-columns: 1fr; }
+  }
+
+  @media (max-width: 600px) {
+    .bar-item { grid-template-columns: 80px 1fr 50px; }
+    .kpi-grid { grid-template-columns: 1fr 1fr; }
+    .improve-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- ═══════════════════════════════════
+       HEADER
+       ═══════════════════════════════════ -->
+  <header class="header">
+    <div class="tag">Ad Performance Report</div>
+    <h1>광고 성과 분석 리포트</h1>
+    <p class="period">{{PERIOD}} &nbsp;|&nbsp; {{DAYS}}일간</p>
+  </header>
+
+  <!-- ═══════════════════════════════════
+       ALERT BANNER
+       클래스: (없음)=danger, .ok=양호, .warn=경고
+       ═══════════════════════════════════ -->
+  <div class="alert-banner {{ALERT_CLASS}}">
+    <div class="alert-icon">{{ALERT_ICON}}</div>
+    <div class="alert-content">
+      <h3>{{ALERT_TITLE}}</h3>
+      <p>{{ALERT_DESC}}</p>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════
+       KPI CARDS
+       각 카드의 클래스: danger / warn / ok / info
+       ═══════════════════════════════════ -->
+  <div class="kpi-grid">
+    {{KPI_CARDS}}
+    <!-- 예시:
+    <div class="kpi-card warn">
+      <div class="kpi-label">총 노출수</div>
+      <div class="kpi-value warn">26,040</div>
+      <div class="kpi-sub">일평균 3,720회</div>
+    </div>
+    -->
+  </div>
+
+  <!-- ═══════════════════════════════════
+       CONVERSION FUNNEL
+       ═══════════════════════════════════ -->
+  <div class="section">
+    <div class="section-title">전환 퍼널 분석</div>
+    <div class="chart-container">
+      <div class="chart-title">노출 → 클릭 → 전환 퍼널</div>
+      <div class="chart-subtitle">각 단계별 이탈 지점 파악</div>
+      <div class="funnel">
+        {{FUNNEL_STEPS}}
+        <!-- 예시:
+        <div class="funnel-step">
+          <div class="funnel-bar" style="width:100%; background:rgba(78,168,222,0.15); border:1px solid rgba(78,168,222,0.3);">
+            <span style="color:var(--accent-blue)">노출</span>
+            <span class="num" style="color:var(--accent-blue)">26,040</span>
+          </div>
+        </div>
+        <div class="funnel-arrow">↓ <span style="font-size:11px; color:var(--accent-red); margin-left:8px;">-99.54% 이탈</span></div>
+        -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════
+       DAILY TREND
+       ═══════════════════════════════════ -->
+  <div class="section">
+    <div class="section-title">일별 추이</div>
+    <div class="chart-container">
+      <div class="chart-title">일별 노출수 & 클릭수</div>
+      <div class="chart-subtitle">{{TREND_SUBTITLE}}</div>
+      <div class="trend-chart">
+        {{TREND_DAYS}}
+        <!-- 예시:
+        <div class="trend-day">
+          <div class="trend-bar-wrap">
+            <div class="trend-val">42</div>
+            <div class="trend-bar clicks" style="height:35%;"></div>
+            <div class="trend-val" style="color:var(--accent-blue)">7,069</div>
+            <div class="trend-bar impressions" style="height:100%;"></div>
+          </div>
+          <div class="trend-date">4/2</div>
+        </div>
+        -->
+      </div>
+      <div class="trend-legend">
+        <div class="trend-legend-item"><div class="legend-dot blue"></div>노출수</div>
+        <div class="trend-legend-item"><div class="legend-dot orange"></div>클릭수</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════
+       CAMPAIGN COMPARISON
+       ═══════════════════════════════════ -->
+  <div class="section">
+    <div class="section-title">캠페인별 비교</div>
+    <div class="campaign-grid">
+      {{CAMPAIGN_CARDS}}
+      <!-- 예시:
+      <div class="campaign-card">
+        <h3>꿀참외 캠페인</h3>
+        <div class="product">산지직송 성주 꿀참외 | 2개 광고세트</div>
+        <div class="stat-row"><span class="stat-label">총 노출</span><span class="stat-value" style="color:var(--accent-blue)">20,542</span></div>
+        ...
+      </div>
+      -->
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════
+       OPTION DETAIL TABLE + BAR CHART
+       ═══════════════════════════════════ -->
+  <div class="section">
+    <div class="section-title">옵션별 상세 성과</div>
+    <div class="chart-container" style="overflow-x:auto">
+      <div class="chart-title">옵션별 노출 비교</div>
+      <div class="chart-subtitle">{{OPTION_BAR_SUBTITLE}}</div>
+      <div class="bar-chart" style="margin-bottom:32px">
+        {{OPTION_BARS}}
+      </div>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>옵션</th>
+            <th>노출</th>
+            <th>클릭</th>
+            <th>CTR</th>
+            <th>광고비</th>
+            <th>CPC</th>
+            <th>전환</th>
+            <th>평가</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{OPTION_TABLE_ROWS}}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════
+       CPC COMPARISON
+       ═══════════════════════════════════ -->
+  <div class="section">
+    <div class="section-title">CPC(클릭당 비용) 비교</div>
+    <div class="chart-container">
+      <div class="chart-title">옵션별 CPC 비교</div>
+      <div class="chart-subtitle">{{CPC_SUBTITLE}}</div>
+      <div class="bar-chart">
+        {{CPC_BARS}}
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════
+       IMPROVEMENT AREAS
+       카드 클래스: critical / warning / info
+       ═══════════════════════════════════ -->
+  <div class="section">
+    <div class="section-title">개선이 필요한 영역</div>
+    <div class="improve-grid">
+      {{IMPROVE_CARDS}}
+      <!-- 예시:
+      <div class="improve-card critical">
+        <div class="improve-priority">Critical — 즉시 조치</div>
+        <h4>전환율 0%</h4>
+        <p>설명...</p>
+        <ul><li>항목 1</li><li>항목 2</li></ul>
+      </div>
+      -->
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════
+       ACTION PLAN
+       ═══════════════════════════════════ -->
+  <div class="section">
+    <div class="section-title">즉시 실행 액션 플랜</div>
+    <div class="action-list">
+      {{ACTION_ITEMS}}
+      <!-- 예시:
+      <div class="action-item">
+        <div class="action-number">1</div>
+        <div class="action-text">
+          <h5>제목</h5>
+          <p>설명</p>
+        </div>
+      </div>
+      -->
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════
+       SUMMARY TABLE (현재 vs 개선 후)
+       ═══════════════════════════════════ -->
+  <div class="section">
+    <div class="section-title">요약 — 현재 vs 개선 후 예상</div>
+    <div class="chart-container">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>지표</th>
+            <th>현재</th>
+            <th>개선 후 예상</th>
+            <th>변화</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{SUMMARY_ROWS}}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <p>Generated {{DATE}} &nbsp;|&nbsp; 광고 성과 분석 &nbsp;|&nbsp; 상품등록 서포터</p>
+  </footer>
+
+</div>
+
+</body>
+</html>

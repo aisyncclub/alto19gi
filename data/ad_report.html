@@ -1,0 +1,1307 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>광고 성과 보고서 | 2026.03.28 ~ 04.03</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;600&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --bg-card: #12121a;
+    --bg-card-hover: #1a1a26;
+    --border: #1e1e2e;
+    --text: #e8e6e3;
+    --text-dim: #6b6b7b;
+    --text-muted: #44445a;
+    --accent-red: #ff3b5c;
+    --accent-red-glow: rgba(255,59,92,0.15);
+    --accent-orange: #ff8c42;
+    --accent-orange-glow: rgba(255,140,66,0.12);
+    --accent-yellow: #ffd166;
+    --accent-green: #06d6a0;
+    --accent-green-glow: rgba(6,214,160,0.12);
+    --accent-blue: #4ea8de;
+    --accent-purple: #9b72cf;
+    --gradient-danger: linear-gradient(135deg, #ff3b5c, #ff6b81);
+    --gradient-warn: linear-gradient(135deg, #ff8c42, #ffd166);
+    --gradient-ok: linear-gradient(135deg, #06d6a0, #4ea8de);
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Noto Sans KR', sans-serif;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* Noise texture overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px 24px 80px;
+  }
+
+  /* ─── HEADER ─── */
+  .header {
+    text-align: center;
+    margin-bottom: 64px;
+    position: relative;
+  }
+
+  .header::after {
+    content: '';
+    position: absolute;
+    bottom: -32px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 120px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent-red), transparent);
+  }
+
+  .header .tag {
+    display: inline-block;
+    padding: 6px 16px;
+    border: 1px solid var(--accent-red);
+    border-radius: 4px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--accent-red);
+    margin-bottom: 20px;
+    animation: fadeInDown 0.6s ease;
+  }
+
+  .header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(36px, 5vw, 56px);
+    font-weight: 900;
+    letter-spacing: -1px;
+    background: linear-gradient(135deg, #fff 30%, var(--accent-red));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: fadeInDown 0.6s ease 0.1s both;
+  }
+
+  .header .period {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    color: var(--text-dim);
+    margin-top: 12px;
+    animation: fadeInDown 0.6s ease 0.2s both;
+  }
+
+  /* ─── ALERT BANNER ─── */
+  .alert-banner {
+    background: linear-gradient(135deg, rgba(255,59,92,0.08), rgba(255,59,92,0.02));
+    border: 1px solid rgba(255,59,92,0.25);
+    border-radius: 12px;
+    padding: 28px 32px;
+    margin-bottom: 48px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    animation: fadeInUp 0.6s ease 0.3s both;
+  }
+
+  .alert-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--gradient-danger);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    flex-shrink: 0;
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  .alert-content h3 {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--accent-red);
+    margin-bottom: 4px;
+  }
+
+  .alert-content p {
+    font-size: 14px;
+    color: var(--text-dim);
+    line-height: 1.7;
+  }
+
+  /* ─── KPI CARDS ─── */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    margin-bottom: 48px;
+  }
+
+  .kpi-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    animation: fadeInUp 0.5s ease both;
+  }
+
+  .kpi-card:hover {
+    background: var(--bg-card-hover);
+    transform: translateY(-2px);
+    border-color: rgba(255,255,255,0.08);
+  }
+
+  .kpi-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+  }
+
+  .kpi-card:nth-child(1) { animation-delay: 0.3s; }
+  .kpi-card:nth-child(1)::before { background: var(--gradient-danger); }
+  .kpi-card:nth-child(2) { animation-delay: 0.4s; }
+  .kpi-card:nth-child(2)::before { background: var(--gradient-warn); }
+  .kpi-card:nth-child(3) { animation-delay: 0.5s; }
+  .kpi-card:nth-child(3)::before { background: var(--gradient-danger); }
+  .kpi-card:nth-child(4) { animation-delay: 0.6s; }
+  .kpi-card:nth-child(4)::before { background: var(--gradient-danger); }
+  .kpi-card:nth-child(5) { animation-delay: 0.7s; }
+  .kpi-card:nth-child(5)::before { background: var(--gradient-warn); }
+
+  .kpi-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+  }
+
+  .kpi-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 28px;
+    font-weight: 600;
+    line-height: 1.2;
+  }
+
+  .kpi-sub {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 6px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .kpi-value.danger { color: var(--accent-red); }
+  .kpi-value.warn { color: var(--accent-orange); }
+  .kpi-value.ok { color: var(--accent-green); }
+
+  /* ─── SECTION ─── */
+  .section {
+    margin-bottom: 48px;
+    animation: fadeInUp 0.6s ease both;
+  }
+
+  .section-title {
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    color: var(--text-dim);
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* ─── CAMPAIGN COMPARISON ─── */
+  .campaign-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 48px;
+  }
+
+  @media (max-width: 768px) {
+    .campaign-grid { grid-template-columns: 1fr; }
+  }
+
+  .campaign-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px;
+    position: relative;
+  }
+
+  .campaign-card h3 {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+
+  .campaign-card .product {
+    font-size: 13px;
+    color: var(--text-dim);
+    margin-bottom: 20px;
+  }
+
+  .stat-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+  }
+
+  .stat-row:last-child { border-bottom: none; }
+
+  .stat-label {
+    font-size: 13px;
+    color: var(--text-dim);
+  }
+
+  .stat-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  /* ─── BAR CHART ─── */
+  .chart-container {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px;
+    margin-bottom: 20px;
+  }
+
+  .chart-title {
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+
+  .chart-subtitle {
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-bottom: 24px;
+  }
+
+  .bar-chart {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .bar-item {
+    display: grid;
+    grid-template-columns: 140px 1fr 70px;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .bar-label {
+    font-size: 12px;
+    color: var(--text-dim);
+    text-align: right;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .bar-track {
+    height: 24px;
+    background: rgba(255,255,255,0.03);
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    animation: barGrow 1s ease both;
+    position: relative;
+  }
+
+  .bar-fill.red { background: var(--gradient-danger); }
+  .bar-fill.orange { background: var(--gradient-warn); }
+  .bar-fill.blue { background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple)); }
+
+  .bar-number {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--text-dim);
+    text-align: right;
+  }
+
+  /* ─── DAILY TREND ─── */
+  .trend-chart {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    height: 160px;
+    padding: 16px 0;
+  }
+
+  .trend-day {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    height: 100%;
+    justify-content: flex-end;
+  }
+
+  .trend-bar-wrap {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    flex: 1;
+    justify-content: flex-end;
+  }
+
+  .trend-bar {
+    width: 70%;
+    max-width: 48px;
+    border-radius: 4px 4px 0 0;
+    animation: barGrow 0.8s ease both;
+    position: relative;
+    min-height: 2px;
+  }
+
+  .trend-bar.impressions { background: var(--accent-blue); opacity: 0.7; }
+  .trend-bar.clicks { background: var(--accent-orange); }
+
+  .trend-date {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+
+  .trend-val {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+  }
+
+  .trend-legend {
+    display: flex;
+    gap: 24px;
+    justify-content: center;
+    margin-top: 12px;
+  }
+
+  .trend-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+
+  .legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+  }
+
+  .legend-dot.blue { background: var(--accent-blue); opacity: 0.7; }
+  .legend-dot.orange { background: var(--accent-orange); }
+
+  /* ─── OPTION TABLE ─── */
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+
+  .data-table thead th {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-muted);
+    padding: 12px 14px;
+    text-align: right;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+
+  .data-table thead th:first-child { text-align: left; }
+
+  .data-table tbody td {
+    padding: 12px 14px;
+    text-align: right;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+  }
+
+  .data-table tbody td:first-child {
+    text-align: left;
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 13px;
+    color: var(--text);
+  }
+
+  .data-table tbody tr:hover { background: rgba(255,255,255,0.02); }
+
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+
+  .badge.danger { background: rgba(255,59,92,0.15); color: var(--accent-red); }
+  .badge.warn { background: rgba(255,140,66,0.12); color: var(--accent-orange); }
+  .badge.ok { background: rgba(6,214,160,0.12); color: var(--accent-green); }
+
+  /* ─── FUNNEL ─── */
+  .funnel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+    margin: 24px 0;
+  }
+
+  .funnel-step {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 18px 0;
+    position: relative;
+    width: 100%;
+  }
+
+  .funnel-bar {
+    height: 44px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+  }
+
+  .funnel-bar span {
+    font-size: 13px;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  .funnel-bar .num {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 15px;
+  }
+
+  .funnel-arrow {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 18px;
+    padding: 4px 0;
+  }
+
+  .funnel-drop {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--accent-red);
+    position: absolute;
+    right: 16px;
+  }
+
+  /* ─── IMPROVEMENT SECTION ─── */
+  .improve-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    gap: 16px;
+  }
+
+  .improve-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .improve-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+  }
+
+  .improve-card.critical::before { background: var(--gradient-danger); }
+  .improve-card.warning::before { background: var(--gradient-warn); }
+  .improve-card.info::before { background: var(--gradient-ok); }
+
+  .improve-priority {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 10px;
+  }
+
+  .improve-card.critical .improve-priority { color: var(--accent-red); }
+  .improve-card.warning .improve-priority { color: var(--accent-orange); }
+  .improve-card.info .improve-priority { color: var(--accent-green); }
+
+  .improve-card h4 {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 10px;
+  }
+
+  .improve-card p {
+    font-size: 13px;
+    color: var(--text-dim);
+    line-height: 1.8;
+  }
+
+  .improve-card ul {
+    margin-top: 10px;
+    padding-left: 0;
+    list-style: none;
+  }
+
+  .improve-card li {
+    font-size: 13px;
+    color: var(--text-dim);
+    padding: 4px 0;
+    padding-left: 18px;
+    position: relative;
+    line-height: 1.7;
+  }
+
+  .improve-card.critical li::before { content: '!'; color: var(--accent-red); position: absolute; left: 0; font-weight: 700; }
+  .improve-card.warning li::before { content: '~'; color: var(--accent-orange); position: absolute; left: 0; font-weight: 700; }
+  .improve-card.info li::before { content: '+'; color: var(--accent-green); position: absolute; left: 0; font-weight: 700; }
+
+  /* ─── ACTION ITEMS ─── */
+  .action-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 24px;
+  }
+
+  .action-item {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 24px;
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .action-number {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  .action-item:nth-child(1) .action-number { background: rgba(255,59,92,0.15); color: var(--accent-red); }
+  .action-item:nth-child(2) .action-number { background: rgba(255,140,66,0.12); color: var(--accent-orange); }
+  .action-item:nth-child(3) .action-number { background: rgba(255,209,102,0.12); color: var(--accent-yellow); }
+  .action-item:nth-child(4) .action-number { background: rgba(6,214,160,0.12); color: var(--accent-green); }
+  .action-item:nth-child(5) .action-number { background: rgba(78,168,222,0.12); color: var(--accent-blue); }
+
+  .action-text h5 {
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+
+  .action-text p {
+    font-size: 13px;
+    color: var(--text-dim);
+    line-height: 1.7;
+  }
+
+  /* ─── FOOTER ─── */
+  .footer {
+    text-align: center;
+    padding: 48px 0 0;
+    border-top: 1px solid var(--border);
+    margin-top: 48px;
+  }
+
+  .footer p {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* ─── ANIMATIONS ─── */
+  @keyframes fadeInDown {
+    from { opacity: 0; transform: translateY(-16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes barGrow {
+    from { width: 0; }
+    to { width: var(--w); }
+  }
+
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(255,59,92,0.4); }
+    50% { box-shadow: 0 0 0 12px rgba(255,59,92,0); }
+  }
+
+  /* responsive */
+  @media (max-width: 600px) {
+    .bar-item { grid-template-columns: 80px 1fr 50px; }
+    .bar-label { font-size: 11px; }
+    .kpi-grid { grid-template-columns: 1fr 1fr; }
+    .improve-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="tag">Ad Performance Report</div>
+    <h1>광고 성과 분석 리포트</h1>
+    <p class="period">2026.03.28 (토) — 2026.04.03 (금) &nbsp;|&nbsp; 7일간</p>
+  </header>
+
+  <!-- CRITICAL ALERT -->
+  <div class="alert-banner">
+    <div class="alert-icon">0</div>
+    <div class="alert-content">
+      <h3>전환율 0% — 7일간 단 한 건의 판매도 발생하지 않았습니다</h3>
+      <p>총 26,040회 노출, 120회 클릭이 있었으나 구매 전환이 전혀 없습니다. 광고비 5,237원이 100% 손실 처리되었으며, 즉각적인 광고 전략 수정이 필요합니다.</p>
+    </div>
+  </div>
+
+  <!-- KPI CARDS -->
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-label">총 노출수</div>
+      <div class="kpi-value warn">26,040</div>
+      <div class="kpi-sub">일평균 3,720회</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">총 클릭수</div>
+      <div class="kpi-value warn">120</div>
+      <div class="kpi-sub">일평균 17회</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">평균 클릭률 (CTR)</div>
+      <div class="kpi-value danger">0.46%</div>
+      <div class="kpi-sub">업계 평균 1~3%</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">전환 / 매출</div>
+      <div class="kpi-value danger">0건 / 0원</div>
+      <div class="kpi-sub">ROAS 0%</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">집행 광고비</div>
+      <div class="kpi-value warn">5,237원</div>
+      <div class="kpi-sub">전액 손실</div>
+    </div>
+  </div>
+
+  <!-- CONVERSION FUNNEL -->
+  <div class="section" style="animation-delay:0.5s">
+    <div class="section-title">전환 퍼널 분석</div>
+    <div class="chart-container">
+      <div class="chart-title">노출 → 클릭 → 전환 퍼널</div>
+      <div class="chart-subtitle">각 단계별 이탈 지점 파악</div>
+      <div class="funnel">
+        <div class="funnel-step">
+          <div class="funnel-bar" style="width:100%; background:rgba(78,168,222,0.15); border:1px solid rgba(78,168,222,0.3);">
+            <span style="color:var(--accent-blue)">노출</span>
+            <span class="num" style="color:var(--accent-blue)">26,040</span>
+          </div>
+        </div>
+        <div class="funnel-arrow">
+          ↓
+          <span style="font-size:11px; color:var(--accent-red); margin-left:8px;">-99.54% 이탈</span>
+        </div>
+        <div class="funnel-step">
+          <div class="funnel-bar" style="width:35%; background:rgba(255,140,66,0.12); border:1px solid rgba(255,140,66,0.3); margin:0 auto;">
+            <span style="color:var(--accent-orange)">클릭</span>
+            <span class="num" style="color:var(--accent-orange)">120</span>
+          </div>
+        </div>
+        <div class="funnel-arrow">
+          ↓
+          <span style="font-size:11px; color:var(--accent-red); margin-left:8px;">-100% 이탈</span>
+        </div>
+        <div class="funnel-step">
+          <div class="funnel-bar" style="width:10%; background:rgba(255,59,92,0.12); border:1px solid rgba(255,59,92,0.3); margin:0 auto;">
+            <span style="color:var(--accent-red)">구매</span>
+            <span class="num" style="color:var(--accent-red)">0</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DAILY TREND -->
+  <div class="section" style="animation-delay:0.6s">
+    <div class="section-title">일별 추이</div>
+    <div class="chart-container">
+      <div class="chart-title">일별 노출수 & 클릭수</div>
+      <div class="chart-subtitle">3/31에 노출 급증 후 신규 캠페인(4/1) 추가</div>
+      <div class="trend-chart">
+        <!-- 3/28 -->
+        <div class="trend-day">
+          <div class="trend-bar-wrap">
+            <div class="trend-val">0</div>
+            <div class="trend-bar clicks" style="--w:2px; height:2px; width:70%; max-width:48px;"></div>
+            <div class="trend-val" style="color:var(--accent-blue)">1,004</div>
+            <div class="trend-bar impressions" style="height:14%; width:70%; max-width:48px;"></div>
+          </div>
+          <div class="trend-date">3/28</div>
+        </div>
+        <!-- 3/29 -->
+        <div class="trend-day">
+          <div class="trend-bar-wrap">
+            <div class="trend-val">4</div>
+            <div class="trend-bar clicks" style="height:3%; width:70%; max-width:48px;"></div>
+            <div class="trend-val" style="color:var(--accent-blue)">1,226</div>
+            <div class="trend-bar impressions" style="height:17%; width:70%; max-width:48px;"></div>
+          </div>
+          <div class="trend-date">3/29</div>
+        </div>
+        <!-- 3/30 -->
+        <div class="trend-day">
+          <div class="trend-bar-wrap">
+            <div class="trend-val">1</div>
+            <div class="trend-bar clicks" style="height:1%; width:70%; max-width:48px;"></div>
+            <div class="trend-val" style="color:var(--accent-blue)">1,174</div>
+            <div class="trend-bar impressions" style="height:16%; width:70%; max-width:48px;"></div>
+          </div>
+          <div class="trend-date">3/30</div>
+        </div>
+        <!-- 3/31 -->
+        <div class="trend-day">
+          <div class="trend-bar-wrap">
+            <div class="trend-val">28</div>
+            <div class="trend-bar clicks" style="height:23%; width:70%; max-width:48px;"></div>
+            <div class="trend-val" style="color:var(--accent-blue)">6,205</div>
+            <div class="trend-bar impressions" style="height:88%; width:70%; max-width:48px;"></div>
+          </div>
+          <div class="trend-date">3/31</div>
+        </div>
+        <!-- 4/1 -->
+        <div class="trend-day">
+          <div class="trend-bar-wrap">
+            <div class="trend-val">13</div>
+            <div class="trend-bar clicks" style="height:11%; width:70%; max-width:48px;"></div>
+            <div class="trend-val" style="color:var(--accent-blue)">2,955</div>
+            <div class="trend-bar impressions" style="height:42%; width:70%; max-width:48px;"></div>
+          </div>
+          <div class="trend-date">4/1</div>
+        </div>
+        <!-- 4/2 -->
+        <div class="trend-day">
+          <div class="trend-bar-wrap">
+            <div class="trend-val">42</div>
+            <div class="trend-bar clicks" style="height:35%; width:70%; max-width:48px;"></div>
+            <div class="trend-val" style="color:var(--accent-blue)">7,069</div>
+            <div class="trend-bar impressions" style="height:100%; width:70%; max-width:48px;"></div>
+          </div>
+          <div class="trend-date">4/2</div>
+        </div>
+        <!-- 4/3 -->
+        <div class="trend-day">
+          <div class="trend-bar-wrap">
+            <div class="trend-val">32</div>
+            <div class="trend-bar clicks" style="height:27%; width:70%; max-width:48px;"></div>
+            <div class="trend-val" style="color:var(--accent-blue)">6,407</div>
+            <div class="trend-bar impressions" style="height:90%; width:70%; max-width:48px;"></div>
+          </div>
+          <div class="trend-date">4/3</div>
+        </div>
+      </div>
+      <div class="trend-legend">
+        <div class="trend-legend-item"><div class="legend-dot blue"></div>노출수</div>
+        <div class="trend-legend-item"><div class="legend-dot orange"></div>클릭수</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CAMPAIGN COMPARISON -->
+  <div class="section" style="animation-delay:0.7s">
+    <div class="section-title">캠페인별 비교</div>
+    <div class="campaign-grid">
+      <!-- 꿀참외 캠페인 -->
+      <div class="campaign-card">
+        <h3>꿀참외 캠페인</h3>
+        <div class="product">산지직송 성주 꿀참외 가정용 아삭달콤 | 2개 광고세트</div>
+        <div class="stat-row">
+          <span class="stat-label">총 노출</span>
+          <span class="stat-value" style="color:var(--accent-blue)">20,542</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">총 클릭</span>
+          <span class="stat-value" style="color:var(--accent-orange)">113</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">평균 CTR</span>
+          <span class="stat-value" style="color:var(--accent-orange)">0.55%</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">집행 광고비</span>
+          <span class="stat-value">3,226원</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">전환</span>
+          <span class="stat-value" style="color:var(--accent-red)">0건</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">평균 CPC</span>
+          <span class="stat-value">28.5원</span>
+        </div>
+      </div>
+      <!-- 부사사과 캠페인 -->
+      <div class="campaign-card">
+        <h3>부사사과 캠페인</h3>
+        <div class="product">황금상회 산지직송 부사 사과 제철 국내산사과 | 1개 광고세트</div>
+        <div class="stat-row">
+          <span class="stat-label">총 노출</span>
+          <span class="stat-value" style="color:var(--accent-blue)">5,498</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">총 클릭</span>
+          <span class="stat-value" style="color:var(--accent-orange)">7</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">평균 CTR</span>
+          <span class="stat-value" style="color:var(--accent-red)">0.13%</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">집행 광고비</span>
+          <span class="stat-value">2,011원</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">전환</span>
+          <span class="stat-value" style="color:var(--accent-red)">0건</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">평균 CPC</span>
+          <span class="stat-value">287.3원</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- OPTION-LEVEL DETAIL -->
+  <div class="section" style="animation-delay:0.8s">
+    <div class="section-title">옵션별 상세 성과</div>
+    <div class="chart-container" style="overflow-x:auto">
+      <div class="chart-title">옵션별 노출 & 클릭 비교</div>
+      <div class="chart-subtitle">꿀참외 중소과 1kg이 노출 대비 클릭률이 가장 낮음</div>
+
+      <div class="bar-chart" style="margin-bottom:32px">
+        <div class="bar-item">
+          <div class="bar-label">참외 혼합 1.5kg</div>
+          <div class="bar-track"><div class="bar-fill blue" style="--w:57%; width:57%"></div></div>
+          <div class="bar-number">3,982</div>
+        </div>
+        <div class="bar-item">
+          <div class="bar-label">참외 중소 1kg</div>
+          <div class="bar-track"><div class="bar-fill blue" style="--w:100%; width:100%"></div></div>
+          <div class="bar-number">6,947</div>
+        </div>
+        <div class="bar-item">
+          <div class="bar-label">참외 혼합 1kg (신)</div>
+          <div class="bar-track"><div class="bar-fill blue" style="--w:28%; width:28%"></div></div>
+          <div class="bar-number">1,989</div>
+        </div>
+        <div class="bar-item">
+          <div class="bar-label">참외 혼합 1kg (구)</div>
+          <div class="bar-track"><div class="bar-fill blue" style="--w:100%; width:100%"></div></div>
+          <div class="bar-number">7,624</div>
+        </div>
+        <div class="bar-item">
+          <div class="bar-label">사과 소과 2kg</div>
+          <div class="bar-track"><div class="bar-fill orange" style="--w:20%; width:20%"></div></div>
+          <div class="bar-number">1,377</div>
+        </div>
+        <div class="bar-item">
+          <div class="bar-label">사과 소과 1kg</div>
+          <div class="bar-track"><div class="bar-fill orange" style="--w:37%; width:37%"></div></div>
+          <div class="bar-number">2,583</div>
+        </div>
+        <div class="bar-item">
+          <div class="bar-label">사과 소과 3kg</div>
+          <div class="bar-track"><div class="bar-fill orange" style="--w:22%; width:22%"></div></div>
+          <div class="bar-number">1,538</div>
+        </div>
+      </div>
+
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>옵션</th>
+            <th>노출</th>
+            <th>클릭</th>
+            <th>CTR</th>
+            <th>광고비</th>
+            <th>CPC</th>
+            <th>전환</th>
+            <th>평가</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>참외 혼합과 1.5kg</td>
+            <td>3,982</td>
+            <td>35</td>
+            <td>0.88%</td>
+            <td>923원</td>
+            <td>26원</td>
+            <td style="color:var(--accent-red)">0</td>
+            <td><span class="badge warn">CTR 양호</span></td>
+          </tr>
+          <tr>
+            <td>참외 중소과 1kg</td>
+            <td>6,947</td>
+            <td>24</td>
+            <td>0.35%</td>
+            <td>153원</td>
+            <td>6원</td>
+            <td style="color:var(--accent-red)">0</td>
+            <td><span class="badge danger">CTR 낮음</span></td>
+          </tr>
+          <tr>
+            <td>참외 혼합과 1kg (신)</td>
+            <td>1,989</td>
+            <td>15</td>
+            <td>0.75%</td>
+            <td>775원</td>
+            <td>52원</td>
+            <td style="color:var(--accent-red)">0</td>
+            <td><span class="badge warn">CPC 높음</span></td>
+          </tr>
+          <tr>
+            <td>참외 혼합과 1kg (구)</td>
+            <td>7,624</td>
+            <td>39</td>
+            <td>0.51%</td>
+            <td>1,375원</td>
+            <td>35원</td>
+            <td style="color:var(--accent-red)">0</td>
+            <td><span class="badge warn">노출 최대</span></td>
+          </tr>
+          <tr>
+            <td>사과 소과 2kg</td>
+            <td>1,377</td>
+            <td>1</td>
+            <td>0.07%</td>
+            <td>120원</td>
+            <td>120원</td>
+            <td style="color:var(--accent-red)">0</td>
+            <td><span class="badge danger">CTR 극히 낮음</span></td>
+          </tr>
+          <tr>
+            <td>사과 소과 1kg</td>
+            <td>2,583</td>
+            <td>4</td>
+            <td>0.15%</td>
+            <td>1,012원</td>
+            <td>253원</td>
+            <td style="color:var(--accent-red)">0</td>
+            <td><span class="badge danger">CPC 매우 높음</span></td>
+          </tr>
+          <tr>
+            <td>사과 소과 3kg</td>
+            <td>1,538</td>
+            <td>2</td>
+            <td>0.13%</td>
+            <td>879원</td>
+            <td>440원</td>
+            <td style="color:var(--accent-red)">0</td>
+            <td><span class="badge danger">CPC 최악</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- CPC COMPARISON BAR -->
+  <div class="section" style="animation-delay:0.85s">
+    <div class="section-title">CPC(클릭당 비용) 비교</div>
+    <div class="chart-container">
+      <div class="chart-title">옵션별 CPC 비교</div>
+      <div class="chart-subtitle">부사사과 옵션들의 CPC가 비정상적으로 높음 (사과 3kg: 440원/클릭)</div>
+      <div class="bar-chart">
+        <div class="bar-item">
+          <div class="bar-label">참외 중소 1kg</div>
+          <div class="bar-track"><div class="bar-fill" style="--w:1.4%; width:1.4%; background:var(--accent-green)"></div></div>
+          <div class="bar-number" style="color:var(--accent-green)">6원</div>
+        </div>
+        <div class="bar-item">
+          <div class="bar-label">참외 혼합 1.5kg</div>
+          <div class="bar-track"><div class="bar-fill" style="--w:6%; width:6%; background:var(--accent-green)"></div></div>
+          <div class="bar-number" style="color:var(--accent-green)">26원</div>
+        </div>
+        <div class="bar-item">
+          <div class="bar-label">참외 혼합 1kg(구)</div>
+          <div class="bar-track"><div class="bar-fill" style="--w:8%; width:8%; background:var(--accent-orange)"></div></div>
+          <div class="bar-number">35원</div>
+        </div>
+        <div class="bar-item">
+          <div class="bar-label">참외 혼합 1kg(신)</div>
+          <div class="bar-track"><div class="bar-fill" style="--w:12%; width:12%; background:var(--accent-orange)"></div></div>
+          <div class="bar-number">52원</div>
+        </div>
+        <div class="bar-item">
+          <div class="bar-label">사과 소과 2kg</div>
+          <div class="bar-track"><div class="bar-fill red" style="--w:27%; width:27%"></div></div>
+          <div class="bar-number" style="color:var(--accent-red)">120원</div>
+        </div>
+        <div class="bar-item">
+          <div class="bar-label">사과 소과 1kg</div>
+          <div class="bar-track"><div class="bar-fill red" style="--w:58%; width:58%"></div></div>
+          <div class="bar-number" style="color:var(--accent-red)">253원</div>
+        </div>
+        <div class="bar-item">
+          <div class="bar-label">사과 소과 3kg</div>
+          <div class="bar-track"><div class="bar-fill red" style="--w:100%; width:100%"></div></div>
+          <div class="bar-number" style="color:var(--accent-red)">440원</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- IMPROVEMENT AREAS -->
+  <div class="section" style="animation-delay:0.9s">
+    <div class="section-title">개선이 필요한 영역</div>
+    <div class="improve-grid">
+
+      <div class="improve-card critical">
+        <div class="improve-priority">Critical &mdash; 즉시 조치</div>
+        <h4>전환율 0% : 상세페이지 & 가격 문제</h4>
+        <p>120회 클릭이 있었으나 단 한 건도 구매로 이어지지 않았습니다. 클릭 후 이탈 = 상세페이지 또는 가격이 문제입니다.</p>
+        <ul>
+          <li>상세페이지 첫 화면 3초 안에 핵심 가치(신선도, 가격 메리트) 전달되는지 점검</li>
+          <li>경쟁 상품 가격 대비 내 판매가가 너무 높지 않은지 비교 분석</li>
+          <li>상품 리뷰 0건 → 초기 리뷰 확보 전략 필요 (지인 구매, 체험단 등)</li>
+          <li>"가정용" 표기가 품질 불신을 줄 수 있음 → "실속형" 등으로 변경 검토</li>
+        </ul>
+      </div>
+
+      <div class="improve-card critical">
+        <div class="improve-priority">Critical &mdash; 즉시 조치</div>
+        <h4>부사사과 캠페인 : CTR 0.13% / CPC 폭등</h4>
+        <p>부사사과 전체 CTR이 0.13%로 극히 낮고, CPC가 120~440원으로 비정상적입니다.</p>
+        <ul>
+          <li><strong>4월에 부사사과는 비수기</strong> — 소비자 관심이 낮은 시기에 광고 집행 중</li>
+          <li>부사사과 캠페인 <strong>즉시 중지</strong> 또는 예산을 꿀참외로 100% 전환 권장</li>
+          <li>사과를 유지하려면 제철 과일(봄사과)로 상품 교체 필요</li>
+          <li>현재 썸네일/상품명이 클릭 유도력이 약함 — 강렬한 비주얼 필요</li>
+        </ul>
+      </div>
+
+      <div class="improve-card warning">
+        <div class="improve-priority">Warning &mdash; 빠른 개선</div>
+        <h4>꿀참외 CTR 0.55% : 업계 평균(1~3%) 미달</h4>
+        <p>꿀참외는 제철 상품이라 노출은 나오지만, 클릭률이 기대 이하입니다.</p>
+        <ul>
+          <li>상품 썸네일 이미지 A/B 테스트 — 단면 컷, 박스 오픈 컷 등 변경</li>
+          <li>상품명에 가격 메리트 강조 (예: ★첫출하특가★)</li>
+          <li>중소과 1kg 옵션이 노출 최대(6,947)인데 CTR 0.35% → 이 옵션 썸네일 우선 교체</li>
+          <li>"혼합과 1kg" 광고가 2개 중복 운영 중 — 1개로 통합하여 예산 집중</li>
+        </ul>
+      </div>
+
+      <div class="improve-card warning">
+        <div class="improve-priority">Warning &mdash; 구조 개선</div>
+        <h4>캠페인 구조 비효율 : 중복 & 분산</h4>
+        <p>같은 상품(참외 혼합과 1kg)이 2개 캠페인에서 동시에 광고 집행 중이며, 예산이 7개 옵션에 분산되어 있습니다.</p>
+        <ul>
+          <li>"새 캠페인 (03-28)"과 "새 캠페인 (04-01)"의 참외 혼합과 1kg 중복 → 1개로 통합</li>
+          <li>성과가 가장 좋은 옵션 1~2개에 예산 집중 투자</li>
+          <li>캠페인명을 의미 있게 변경 (예: "참외_CTR테스트_04월")</li>
+          <li>광고세트명 "수업용 테스트", "새 광고 세트" → 목적 기반으로 리네이밍</li>
+        </ul>
+      </div>
+
+      <div class="improve-card info">
+        <div class="improve-priority">Opportunity &mdash; 전략 제안</div>
+        <h4>광고비 규모 : 일 748원으로는 데이터 축적 불가</h4>
+        <p>7일간 총 5,237원(일 748원)은 유의미한 데이터를 모으기엔 너무 적습니다.</p>
+        <ul>
+          <li>최소 일 3,000~5,000원 이상 투자해야 CTR/전환 패턴 파악 가능</li>
+          <li>꿀참외 베스트 옵션 1개에 일 5,000원 집중 → 3일간 테스트</li>
+          <li>타임특가(20% 할인) 병행으로 초기 전환 유도</li>
+          <li>전환 0건 지속 시 → 상품 자체의 경쟁력 재검토 필요</li>
+        </ul>
+      </div>
+
+      <div class="improve-card info">
+        <div class="improve-priority">Opportunity &mdash; 전략 제안</div>
+        <h4>긍정 시그널 : 꿀참외 혼합과 1.5kg</h4>
+        <p>CTR 0.88%로 가장 높고, CPC 26원으로 효율적. 이 옵션이 가장 유망합니다.</p>
+        <ul>
+          <li>이 옵션을 메인 광고로 밀어주기 — 예산 70% 이상 집중</li>
+          <li>1.5kg 옵션 상세페이지를 우선 개선 → 전환 테스트</li>
+          <li>타임특가 + CPS 조합으로 첫 전환 만들기 도전</li>
+          <li>성과 나오면 2kg, 3kg 옵션으로 확장</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- ACTION PLAN -->
+  <div class="section" style="animation-delay:1.0s">
+    <div class="section-title">즉시 실행 액션 플랜</div>
+    <div class="action-list">
+      <div class="action-item">
+        <div class="action-number">1</div>
+        <div class="action-text">
+          <h5>부사사과 캠페인 즉시 중지</h5>
+          <p>CTR 0.13%, CPC 287원 — 비수기 상품에 광고비 낭비 중. 오늘 바로 캠페인 OFF 처리하고 예산을 꿀참외로 돌리세요.</p>
+        </div>
+      </div>
+      <div class="action-item">
+        <div class="action-number">2</div>
+        <div class="action-text">
+          <h5>중복 광고 통합 (참외 혼합과 1kg)</h5>
+          <p>같은 옵션이 2개 캠페인에서 돌아가고 있습니다. "새 캠페인(03-28)"의 혼합과 1kg 광고를 OFF하고 "새 캠페인(04-01)"에 집중하세요.</p>
+        </div>
+      </div>
+      <div class="action-item">
+        <div class="action-number">3</div>
+        <div class="action-text">
+          <h5>꿀참외 혼합과 1.5kg에 예산 집중</h5>
+          <p>CTR이 가장 높은(0.88%) 이 옵션에 일 5,000원 이상 집중 투자. 나머지 옵션은 일시 정지하거나 최소 예산만 유지하세요.</p>
+        </div>
+      </div>
+      <div class="action-item">
+        <div class="action-number">4</div>
+        <div class="action-text">
+          <h5>상세페이지 긴급 점검 & 가격 재설정</h5>
+          <p>120명이 클릭했는데 0명이 구매 = 상세페이지 or 가격 문제. 경쟁사 가격 조사 후 가격 조정하고, 상세페이지 첫 이미지를 더 강렬하게 바꾸세요.</p>
+        </div>
+      </div>
+      <div class="action-item">
+        <div class="action-number">5</div>
+        <div class="action-text">
+          <h5>타임특가(20% 할인) 진행으로 첫 전환 만들기</h5>
+          <p>리뷰 0건, 판매 0건인 상태에서는 정가 판매가 어렵습니다. 타임특가로 할인 진행 → CPS 광고비 무료 혜택까지 받으면서 초기 판매+리뷰를 확보하세요.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SUMMARY TABLE -->
+  <div class="section" style="animation-delay:1.1s">
+    <div class="section-title">요약 — 현재 vs 개선 후 예상</div>
+    <div class="chart-container">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>지표</th>
+            <th>현재 (7일)</th>
+            <th>개선 후 예상 (7일)</th>
+            <th>변화</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>활성 캠페인</td>
+            <td>3개 (7옵션)</td>
+            <td>1개 (1~2옵션)</td>
+            <td><span class="badge ok">집중</span></td>
+          </tr>
+          <tr>
+            <td>일 광고비</td>
+            <td>748원</td>
+            <td>5,000원</td>
+            <td><span class="badge ok">+569%</span></td>
+          </tr>
+          <tr>
+            <td>예상 CTR</td>
+            <td>0.46%</td>
+            <td>1.0~1.5%</td>
+            <td><span class="badge ok">x2~3</span></td>
+          </tr>
+          <tr>
+            <td>예상 전환</td>
+            <td style="color:var(--accent-red)">0건</td>
+            <td>타임특가 병행 시 첫 전환 기대</td>
+            <td><span class="badge ok">탈출</span></td>
+          </tr>
+          <tr>
+            <td>낭비 광고비</td>
+            <td style="color:var(--accent-red)">2,011원 (사과)</td>
+            <td>0원</td>
+            <td><span class="badge ok">제거</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <p>Generated 2026-04-04 &nbsp;|&nbsp; 올웨이즈 광고 성과 분석 &nbsp;|&nbsp; 상품등록 서포터</p>
+  </footer>
+
+</div>
+
+</body>
+</html>
