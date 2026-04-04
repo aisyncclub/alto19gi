@@ -258,7 +258,9 @@ body{font-family:'Pretendard Variable',-apple-system,system-ui,sans-serif;backgr
         </div>
       </div>
       <div style="display:flex;gap:8px;margin-top:16px">
-        <button class="btn btn-primary" onclick="calcMarginUI()" style="flex:1">💰 마진 계산하기</button>
+        <button class="btn" onclick="calcMarginUI('alwayz')" style="flex:1;background:var(--blue);color:#fff">🟢 올웨이즈 계산</button>
+        <button class="btn" onclick="calcMarginUI('toss')" style="flex:1;background:var(--pink);color:#fff">🟣 토스 계산</button>
+        <button class="btn btn-primary" onclick="calcMarginUI('both')" style="flex:1">💰 둘 다 계산</button>
         <button class="btn btn-outline" onclick="resetMarginForm()">초기화</button>
       </div>
     </div>
@@ -267,7 +269,7 @@ body{font-family:'Pretendard Variable',-apple-system,system-ui,sans-serif;backgr
     <div id="mc-result" style="display:none">
 
       <!-- 플랫폼 서브탭 -->
-      <div style="display:flex;gap:4px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:4px;margin-bottom:16px">
+      <div id="mc-subtab-bar" style="display:flex;gap:4px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:4px;margin-bottom:16px">
         <button class="mc-subtab" data-mctab="alwayz" style="flex:1;padding:12px 8px;border:none;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;border-radius:var(--r-sm);transition:all .15s;background:var(--blue-bg);color:var(--blue)">🟢 올웨이즈</button>
         <button class="mc-subtab" data-mctab="toss" style="flex:1;padding:12px 8px;border:none;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;border-radius:var(--r-sm);transition:all .15s;background:none;color:var(--text3)">🟣 토스쇼핑</button>
       </div>
@@ -1059,29 +1061,62 @@ document.querySelectorAll('.mc-subtab').forEach(btn => {
   });
 });
 
-function calcMarginUI() {
+let currentPlatformMode = 'both'; // 'alwayz', 'toss', 'both'
+
+function calcMarginUI(platform) {
+  if (platform) currentPlatformMode = platform;
   const name = document.getElementById('mc-name').value.trim();
   const cost = parseInt(document.getElementById('mc-cost').value) || 0;
   const deliveryCost = parseInt(document.getElementById('mc-delivery').value) || 0;
   const roas = parseInt(document.getElementById('mc-roas').value) || 300;
   const isTaxable = document.getElementById('mc-tax').value === 'true';
   const category = document.getElementById('mc-cat').value;
+  const timeDiscount = parseInt(document.getElementById('mc-time-discount')?.value) || 20;
 
   if (!name || cost <= 0) { showToast('상품명과 원가를 입력하세요'); return; }
 
   fetch('/api/margin-calc', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name, cost, deliveryCost, isTaxable, category, roas, timeDiscount: 20 })
+    body: JSON.stringify({ name, cost, deliveryCost, isTaxable, category, roas, timeDiscount })
   })
   .then(r => r.json())
   .then(data => {
     lastCalcResult = data;
     renderMarginResult(data);
+    applyPlatformMode(currentPlatformMode);
     document.getElementById('mc-result').style.display = 'block';
     document.getElementById('mc-result').scrollIntoView({ behavior: 'smooth' });
   })
   .catch(e => showToast('계산 오류: ' + e.message));
+}
+
+function applyPlatformMode(mode) {
+  const alwayzTab = document.getElementById('mc-tab-alwayz');
+  const tossTab = document.getElementById('mc-tab-toss');
+  const subtabBar = document.getElementById('mc-subtab-bar');
+  const subtabs = document.querySelectorAll('.mc-subtab');
+
+  if (mode === 'both') {
+    // 서브탭 바 보이기, 올웨이즈 먼저
+    subtabBar.style.display = 'flex';
+    alwayzTab.style.display = 'block';
+    tossTab.style.display = 'none';
+    subtabs.forEach(t => {
+      if (t.dataset.mctab === 'alwayz') { t.style.background = 'var(--blue-bg)'; t.style.color = 'var(--blue)'; }
+      else { t.style.background = 'none'; t.style.color = 'var(--text3)'; }
+    });
+  } else if (mode === 'alwayz') {
+    // 올웨이즈만, 서브탭 바 숨김
+    subtabBar.style.display = 'none';
+    alwayzTab.style.display = 'block';
+    tossTab.style.display = 'none';
+  } else if (mode === 'toss') {
+    // 토스만, 서브탭 바 숨김
+    subtabBar.style.display = 'none';
+    alwayzTab.style.display = 'none';
+    tossTab.style.display = 'block';
+  }
 }
 
 function renderMarginResult(data) {
