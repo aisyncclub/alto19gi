@@ -411,16 +411,57 @@ body{font-family:'Pretendard Variable',-apple-system,system-ui,sans-serif;backgr
       </div>
     </div>
 
-    <!-- 저장된 상품 목록 -->
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:24px">
-      <div class="section-title" style="margin:0">📋 저장된 상품 목록</div>
-      <button class="btn btn-green btn-sm" onclick="exportMarginExcel()" id="btn-export-excel" style="display:none">📥 엑셀 다운로드</button>
+    <!-- ═══ 누적 마진 관리 ═══ -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:32px">
+      <div class="section-title" style="margin:0">📊 누적 마진 관리</div>
+      <div style="display:flex;gap:6px" id="mc-manage-btns" style="display:none">
+        <button class="btn btn-green btn-sm" onclick="exportMarginExcel()" id="btn-export-excel" style="display:none">📥 엑셀 다운로드</button>
+      </div>
     </div>
+
+    <!-- 요약 통계 -->
+    <div id="mc-stats" style="display:none">
+      <div class="grid-3" style="margin-bottom:16px">
+        <div class="stat">
+          <div class="stat-value" id="mc-stat-count">0</div>
+          <div class="stat-label">등록 상품 수</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value" style="color:var(--green)" id="mc-stat-avg-margin">0%</div>
+          <div class="stat-label">평균 마진율 (기본)</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value" style="color:var(--blue)" id="mc-stat-daily">0원</div>
+          <div class="stat-label">일 예상 수익 (5개/상품)</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 정렬/필터 -->
+    <div id="mc-filter-bar" style="display:none;margin-bottom:12px">
+      <div class="filter-bar">
+        <button class="filter-chip active" data-sort="date">최신순</button>
+        <button class="filter-chip" data-sort="margin-high">마진율 높은순</button>
+        <button class="filter-chip" data-sort="margin-low">마진율 낮은순</button>
+        <button class="filter-chip" data-sort="profit">순이익 높은순</button>
+        <button class="filter-chip" data-sort="cost">원가 낮은순</button>
+      </div>
+    </div>
+
+    <!-- 상품 카드 리스트 -->
     <div id="mc-saved-list">
       <div class="empty" style="padding:30px">
         <div class="empty-icon">📋</div>
         <p>저장된 상품이 없습니다</p>
       </div>
+    </div>
+  </div>
+
+  <!-- 상세 보기 모달 -->
+  <div class="modal-overlay" id="mc-detail-modal">
+    <div class="modal">
+      <button class="modal-close" onclick="document.getElementById('mc-detail-modal').classList.remove('show')">&times;</button>
+      <div id="mc-detail-content"></div>
     </div>
   </div>
 
@@ -1417,48 +1458,245 @@ function saveMarginProduct() {
   .catch(e => showToast('저장 오류'));
 }
 
-// 저장된 상품 목록 불러오기
+// ═══════════════════════════════════════
+// 누적 마진 관리
+// ═══════════════════════════════════════
+
+let savedProducts = [];
+let currentSort = 'date';
+
+// 정렬 필터 클릭
+document.querySelectorAll('#mc-filter-bar .filter-chip').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#mc-filter-bar .filter-chip').forEach(c => c.classList.remove('active'));
+    btn.classList.add('active');
+    currentSort = btn.dataset.sort;
+    renderSavedList(savedProducts);
+  });
+});
+
+function sortProducts(products, sort) {
+  const arr = [...products];
+  switch(sort) {
+    case 'margin-high': return arr.sort((a,b) => (b.calc?.modes?.[1]?.alwayz?.normal?.rate||0) - (a.calc?.modes?.[1]?.alwayz?.normal?.rate||0));
+    case 'margin-low': return arr.sort((a,b) => (a.calc?.modes?.[1]?.alwayz?.normal?.rate||0) - (b.calc?.modes?.[1]?.alwayz?.normal?.rate||0));
+    case 'profit': return arr.sort((a,b) => (b.calc?.modes?.[1]?.alwayz?.normal?.profit||0) - (a.calc?.modes?.[1]?.alwayz?.normal?.profit||0));
+    case 'cost': return arr.sort((a,b) => (a.cost||0) - (b.cost||0));
+    default: return arr.sort((a,b) => new Date(b.createdAt||0) - new Date(a.createdAt||0));
+  }
+}
+
 function loadSavedProducts() {
   fetch('/api/margin-products')
     .then(r => r.json())
     .then(products => {
+      savedProducts = products || [];
       const container = document.getElementById('mc-saved-list');
       const exportBtn = document.getElementById('btn-export-excel');
+      const statsEl = document.getElementById('mc-stats');
+      const filterBar = document.getElementById('mc-filter-bar');
+
       if (!products || products.length === 0) {
-        container.innerHTML = '<div class="empty" style="padding:30px"><div class="empty-icon">📋</div><p>저장된 상품이 없습니다</p></div>';
+        container.innerHTML = '<div class="empty" style="padding:30px"><div class="empty-icon">📋</div><p>마진 계산 후 상품을 저장하면 여기에 누적됩니다</p></div>';
         if (exportBtn) exportBtn.style.display = 'none';
+        if (statsEl) statsEl.style.display = 'none';
+        if (filterBar) filterBar.style.display = 'none';
         return;
       }
+
       if (exportBtn) exportBtn.style.display = 'inline-flex';
-      let html = '<div class="card" style="padding:0;overflow-x:auto"><table class="product-table"><thead><tr>' +
-        '<th>상품명</th><th style="width:70px">원가</th><th style="width:70px">판매가</th>' +
-        '<th style="width:60px">과세</th><th style="width:80px">일반 마진</th>' +
-        '<th style="width:90px">타임특가+CPS</th><th style="width:60px"></th></tr></thead><tbody>';
+      if (statsEl) statsEl.style.display = 'block';
+      if (filterBar) filterBar.style.display = 'block';
 
-      products.forEach(p => {
-        const c = p.calc;
-        if (!c || !c.modes) return;
-        const m = c.modes[1]; // 기본 모드
-        const normalRate = m.alwayz.normal.rate;
-        const timeRate = m.alwayz.timeCPS.rate;
-        const nc = normalRate >= 15 ? 'positive' : (normalRate >= 0 ? 'warn' : 'negative');
-        const tc = timeRate >= 15 ? 'positive' : (timeRate >= 0 ? 'warn' : 'negative');
-
-        html += `<tr>
-          <td><strong>${escHTML(p.name)}</strong><br><span style="font-size:11px;color:var(--text3)">${p.category || ''}</span></td>
-          <td class="num">${formatNum(p.cost)}원</td>
-          <td class="num">${formatNum(m.price)}원</td>
-          <td>${p.isTaxable ? '<span style="color:var(--red)">과세</span>' : '<span style="color:var(--green)">면세</span>'}</td>
-          <td class="num ${nc}">${formatNum(m.alwayz.normal.profit)}원<br><span style="font-size:11px">${normalRate}%</span></td>
-          <td class="num ${tc}">${formatNum(m.alwayz.timeCPS.profit)}원<br><span style="font-size:11px">${timeRate}%</span></td>
-          <td><button class="btn btn-sm btn-outline" style="color:var(--red)" onclick="deleteMarginProduct('${p.id}')">삭제</button></td>
-        </tr>`;
-      });
-
-      html += '</tbody></table></div>';
-      container.innerHTML = html;
+      // 요약 통계
+      renderStats(products);
+      renderSavedList(products);
     })
     .catch(() => {});
+}
+
+function renderStats(products) {
+  const valid = products.filter(p => p.calc?.modes?.[1]);
+  const count = valid.length;
+  const avgMargin = count > 0 ? (valid.reduce((s, p) => s + (p.calc.modes[1].alwayz.normal.rate || 0), 0) / count).toFixed(1) : 0;
+  const dailyProfit = valid.reduce((s, p) => s + Math.max(0, p.calc.modes[1].alwayz.normal.profit || 0) * 5, 0);
+
+  document.getElementById('mc-stat-count').textContent = count + '개';
+  document.getElementById('mc-stat-avg-margin').textContent = avgMargin + '%';
+  document.getElementById('mc-stat-avg-margin').style.color = avgMargin >= 15 ? 'var(--green)' : (avgMargin >= 0 ? 'var(--orange)' : 'var(--red)');
+  document.getElementById('mc-stat-daily').textContent = formatNum(dailyProfit) + '원';
+}
+
+function renderSavedList(products) {
+  const container = document.getElementById('mc-saved-list');
+  const sorted = sortProducts(products, currentSort);
+  let html = '';
+
+  sorted.forEach((p, idx) => {
+    const c = p.calc;
+    if (!c || !c.modes) return;
+    const m = c.modes[1]; // 기본
+    const agg = c.modes[0]; // 공격적
+    const rel = c.modes[2]; // 널널
+
+    const normalProfit = m.alwayz.normal.profit;
+    const normalRate = m.alwayz.normal.rate;
+    const timeProfit = m.alwayz.timeCPS.profit;
+    const timeRate = m.alwayz.timeCPS.rate;
+    const tossProfit = m.toss.normal.profit;
+    const tossRate = m.toss.normal.rate;
+    const tossAdProfit = m.toss.ad.profit;
+    const tossAdRate = m.toss.ad.rate;
+
+    const mc = normalRate >= 30 ? 'green' : (normalRate >= 15 ? 'blue' : (normalRate >= 0 ? 'orange' : 'red'));
+    const statusIcon = normalRate >= 30 ? '✅' : (normalRate >= 15 ? '🟢' : (normalRate >= 0 ? '🟡' : '🔴'));
+    const dateStr = p.createdAt ? new Date(p.createdAt).toLocaleDateString('ko-KR', {month:'short', day:'numeric'}) : '';
+
+    // 마진 바 (판매가 대비 순이익 비율)
+    const barWidth = Math.max(0, Math.min(100, normalRate));
+
+    html += `
+    <div class="card" style="padding:16px;cursor:pointer;transition:all .15s;border-left:3px solid var(--${mc})" onclick="showProductDetail('${p.id}')">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
+        <div>
+          <div style="font-size:16px;font-weight:700">${statusIcon} ${escHTML(p.name)}</div>
+          <div style="font-size:12px;color:var(--text3);margin-top:2px">
+            ${p.category || ''} · ${p.isTaxable ? '과세' : '면세'} · ${dateStr}
+          </div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:20px;font-weight:800;color:var(--${mc})">${formatNum(normalProfit)}원</div>
+          <div style="font-size:12px;color:var(--${mc})">마진율 ${normalRate}%</div>
+        </div>
+      </div>
+
+      <!-- 마진 바 -->
+      <div style="height:6px;background:var(--bg);border-radius:3px;margin-bottom:12px;overflow:hidden">
+        <div style="height:100%;width:${barWidth}%;background:var(--${mc});border-radius:3px;transition:width .3s"></div>
+      </div>
+
+      <!-- 핵심 수치 그리드 -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;font-size:12px">
+        <div style="background:var(--bg3);padding:8px;border-radius:6px;text-align:center">
+          <div style="color:var(--text3);margin-bottom:2px">원가</div>
+          <div style="font-weight:700">${formatNum(p.cost)}원</div>
+        </div>
+        <div style="background:var(--bg3);padding:8px;border-radius:6px;text-align:center">
+          <div style="color:var(--text3);margin-bottom:2px">판매가(기본)</div>
+          <div style="font-weight:700">${formatNum(m.price)}원</div>
+        </div>
+        <div style="background:var(--bg3);padding:8px;border-radius:6px;text-align:center">
+          <div style="color:var(--text3);margin-bottom:2px">타임특가+CPS</div>
+          <div style="font-weight:700;color:${timeRate >= 0 ? 'var(--green)' : 'var(--red)'}">${formatNum(timeProfit)}원</div>
+        </div>
+        <div style="background:var(--bg3);padding:8px;border-radius:6px;text-align:center">
+          <div style="color:var(--text3);margin-bottom:2px">토스 일반</div>
+          <div style="font-weight:700;color:${tossRate >= 0 ? 'var(--green)' : 'var(--red)'}">${formatNum(tossProfit)}원</div>
+        </div>
+      </div>
+
+      <!-- 전략 비교 미니 -->
+      <div style="display:flex;gap:6px;margin-top:10px;font-size:11px">
+        <span class="season-badge" style="background:var(--green-bg);color:var(--green)">전략A(타임특가) ${timeRate}%</span>
+        <span class="season-badge" style="background:var(--blue-bg);color:var(--blue)">전략B(일반) ${normalRate}%</span>
+        <span class="season-badge" style="background:var(--purple-bg);color:var(--purple)">토스광고 ${tossAdRate}%</span>
+      </div>
+
+      <div style="display:flex;justify-content:flex-end;margin-top:8px;gap:6px" onclick="event.stopPropagation()">
+        <button class="btn btn-sm btn-outline" onclick="loadProductToCalc('${p.id}')">🔄 다시 계산</button>
+        <button class="btn btn-sm btn-outline" style="color:var(--red)" onclick="deleteMarginProduct('${p.id}')">삭제</button>
+      </div>
+    </div>`;
+  });
+
+  container.innerHTML = html;
+}
+
+function showProductDetail(id) {
+  const p = savedProducts.find(x => x.id === id);
+  if (!p || !p.calc?.modes) return;
+
+  const c = p.calc;
+  const modes = c.modes;
+  const m = modes[1]; // 기본
+
+  let html = `
+    <h2>${escHTML(p.name)} — 상세 마진 분석</h2>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">
+      <span class="season-badge" style="background:var(--blue-bg);color:var(--blue)">원가 ${formatNum(p.cost)}원</span>
+      <span class="season-badge" style="background:var(--purple-bg);color:var(--purple)">택배비 ${formatNum(p.deliveryCost)}원</span>
+      <span class="season-badge" style="${p.isTaxable ? 'background:var(--red-bg);color:var(--red)' : 'background:var(--green-bg);color:var(--green)'}">${p.isTaxable ? '과세' : '면세'}</span>
+      <span class="season-badge" style="background:var(--orange-bg);color:var(--orange)">ROAS ${p.roas||300}%</span>
+    </div>
+
+    <h3>📊 모드별 비교 (올웨이즈)</h3>
+    <table class="product-table" style="font-size:13px;margin-bottom:16px">
+      <thead><tr><th>모드</th><th>판매가</th><th>일반 마진</th><th>타임특가+CPS</th><th>일반+CPC</th></tr></thead>
+      <tbody>`;
+
+  modes.forEach(md => {
+    const isDefault = md.mode === '기본';
+    const bg = isDefault ? 'background:var(--bg3)' : '';
+    const nc = md.alwayz.normal.rate >= 15 ? 'positive' : (md.alwayz.normal.rate >= 0 ? 'warn' : 'negative');
+    const tc = md.alwayz.timeCPS.rate >= 15 ? 'positive' : (md.alwayz.timeCPS.rate >= 0 ? 'warn' : 'negative');
+    const cc = md.alwayz.cpc.rate >= 15 ? 'positive' : (md.alwayz.cpc.rate >= 0 ? 'warn' : 'negative');
+    html += `<tr style="${bg}">
+      <td style="font-weight:600">${md.mode} (x${md.mult})</td>
+      <td class="num">${formatNum(md.price)}원</td>
+      <td class="num ${nc}">${formatNum(md.alwayz.normal.profit)}원 (${md.alwayz.normal.rate}%)</td>
+      <td class="num ${tc}">${formatNum(md.alwayz.timeCPS.profit)}원 (${md.alwayz.timeCPS.rate}%)</td>
+      <td class="num ${cc}">${formatNum(md.alwayz.cpc.profit)}원 (${md.alwayz.cpc.rate}%)</td>
+    </tr>`;
+  });
+
+  html += `</tbody></table>
+
+    <h3>🟣 토스쇼핑</h3>
+    <table class="product-table" style="font-size:13px;margin-bottom:16px">
+      <thead><tr><th>모드</th><th>판매가</th><th>일반(10%)</th><th>광고(2%)</th></tr></thead>
+      <tbody>`;
+
+  modes.forEach(md => {
+    const isDefault = md.mode === '기본';
+    const bg = isDefault ? 'background:var(--bg3)' : '';
+    const nc = md.toss.normal.rate >= 15 ? 'positive' : (md.toss.normal.rate >= 0 ? 'warn' : 'negative');
+    const ac = md.toss.ad.rate >= 15 ? 'positive' : (md.toss.ad.rate >= 0 ? 'warn' : 'negative');
+    html += `<tr style="${bg}">
+      <td style="font-weight:600">${md.mode} (x${md.mult})</td>
+      <td class="num">${formatNum(md.price)}원</td>
+      <td class="num ${nc}">${formatNum(md.toss.normal.profit)}원 (${md.toss.normal.rate}%)</td>
+      <td class="num ${ac}">${formatNum(md.toss.ad.profit)}원 (${md.toss.ad.rate}%)</td>
+    </tr>`;
+  });
+
+  html += `</tbody></table>
+
+    <h3>💰 일 예상 수익 (기본 모드, 올웨이즈 일반)</h3>
+    <div class="grid-3" style="margin-bottom:16px">
+      <div class="stat"><div class="stat-value">${formatNum(m.alwayz.normal.profit * 5)}원</div><div class="stat-label">하루 5개</div></div>
+      <div class="stat"><div class="stat-value">${formatNum(m.alwayz.normal.profit * 10)}원</div><div class="stat-label">하루 10개</div></div>
+      <div class="stat"><div class="stat-value">${formatNum(m.alwayz.normal.profit * 20)}원</div><div class="stat-label">하루 20개</div></div>
+    </div>
+    <div style="text-align:center;padding:8px;background:var(--blue-bg);border-radius:8px;font-size:13px;color:var(--blue)">
+      월 예상 수익 (10개/일 기준): <strong>${formatNum(m.alwayz.normal.profit * 10 * 30)}원</strong>
+    </div>`;
+
+  document.getElementById('mc-detail-content').innerHTML = html;
+  document.getElementById('mc-detail-modal').classList.add('show');
+}
+
+function loadProductToCalc(id) {
+  const p = savedProducts.find(x => x.id === id);
+  if (!p) return;
+  document.getElementById('mc-name').value = p.name || '';
+  document.getElementById('mc-cost').value = p.cost || '';
+  document.getElementById('mc-delivery').value = p.deliveryCost || 0;
+  document.getElementById('mc-tax').value = p.isTaxable ? 'true' : 'false';
+  if (p.category) document.getElementById('mc-cat').value = p.category;
+  document.getElementById('mc-roas').value = p.roas || 300;
+  if (document.getElementById('mc-time-discount')) document.getElementById('mc-time-discount').value = p.timeDiscount || 20;
+  showToast('입력폼에 불러왔습니다. 수정 후 다시 계산하세요!');
+  document.getElementById('mc-name').scrollIntoView({ behavior: 'smooth' });
 }
 
 function deleteMarginProduct(id) {
@@ -1488,6 +1726,11 @@ function exportMarginExcel() {
     .catch(e => showToast('엑셀 내보내기 실패: ' + e.message))
     .finally(() => { btn.textContent = '📥 엑셀 다운로드'; btn.disabled = false; });
 }
+
+// 모달 바깥 클릭 닫기
+document.getElementById('mc-detail-modal').addEventListener('click', function(e) {
+  if (e.target === this) this.classList.remove('show');
+});
 
 // 페이지 로드 시 저장된 상품 불러오기
 setTimeout(loadSavedProducts, 500);
