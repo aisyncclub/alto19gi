@@ -250,6 +250,29 @@ body{font-family:'Pretendard Variable',-apple-system,system-ui,sans-serif;backgr
   <div class="tab-content" id="tab-margin">
     <div class="section-title">💰 마진 계산기</div>
 
+    <!-- 엑셀 일괄 계산 -->
+    <div class="card" style="border:2px dashed var(--border2);background:linear-gradient(135deg,var(--bg2),rgba(16,185,129,.03))">
+      <div class="card-title">📊 엑셀로 한번에 마진 계산</div>
+      <div class="card-desc">템플릿을 다운받고 → 상품/옵션/원가를 입력한 후 → 여기에 업로드하면 전체 마진이 자동 계산돼요</div>
+
+      <div style="display:flex;gap:8px;margin-bottom:16px">
+        <button class="btn btn-green" onclick="downloadMarginTemplate()">📥 템플릿 다운로드</button>
+        <span style="display:flex;align-items:center;font-size:13px;color:var(--text3)">← 먼저 이걸 받아서 상품 정보를 입력하세요</span>
+      </div>
+
+      <div id="mc-excel-dropzone" style="border:2px dashed var(--border2);border-radius:8px;padding:24px;text-align:center;cursor:pointer;transition:all .2s" onclick="document.getElementById('mc-excel-input').click()" ondragover="event.preventDefault();this.style.borderColor='var(--green)';this.style.background='var(--green-bg)'" ondragleave="this.style.borderColor='var(--border2)';this.style.background='none'" ondrop="handleMarginExcelDrop(event)">
+        <div style="font-size:28px;margin-bottom:8px">📄</div>
+        <div style="font-size:14px;font-weight:600">작성한 엑셀 파일을 여기에 드래그하거나 클릭</div>
+        <div style="font-size:12px;color:var(--text3);margin-top:4px">.xlsx 파일만 가능</div>
+        <input type="file" id="mc-excel-input" accept=".xlsx,.xls" style="display:none" onchange="handleMarginExcelFile(this.files[0])">
+      </div>
+
+      <!-- 엑셀 계산 결과 -->
+      <div id="mc-excel-result" style="display:none;margin-top:16px"></div>
+    </div>
+
+    <div style="text-align:center;padding:12px;color:var(--text3);font-size:13px">── 또는 직접 입력 ──</div>
+
     <!-- 공통 입력 폼 -->
     <div class="card">
       <div class="card-title">📝 상품 정보 입력</div>
@@ -1328,6 +1351,144 @@ function showToast(msg) {
 
 let lastCalcResult = null;
 let optionCount = 0;
+let excelCalcResults = null;
+
+// ═══════════════════════════════════════
+// 엑셀 마진 일괄 계산
+// ═══════════════════════════════════════
+
+function downloadMarginTemplate() {
+  window.location.href = '/api/margin-template';
+  showToast('템플릿 다운로드 시작!');
+}
+
+function handleMarginExcelDrop(e) {
+  e.preventDefault();
+  e.currentTarget.style.borderColor = 'var(--border2)';
+  e.currentTarget.style.background = 'none';
+  const file = e.dataTransfer?.files?.[0];
+  if (file) handleMarginExcelFile(file);
+}
+
+function handleMarginExcelFile(file) {
+  if (!file) return;
+  const dropzone = document.getElementById('mc-excel-dropzone');
+  dropzone.innerHTML = '<div class="spinner" style="display:inline-block;width:24px;height:24px;border:3px solid var(--border);border-top-color:var(--green);border-radius:50%;animation:spin .6s linear infinite"></div><div style="margin-top:8px;font-size:14px">계산 중...</div>';
+
+  const formData = new FormData();
+  formData.append('file', file);
+
+  fetch('/api/margin-calc-excel', { method: 'POST', body: formData })
+    .then(r => r.json())
+    .then(data => {
+      // 드롭존 복원
+      dropzone.innerHTML = '<div style="font-size:28px;margin-bottom:8px">📄</div><div style="font-size:14px;font-weight:600">작성한 엑셀 파일을 여기에 드래그하거나 클릭</div><div style="font-size:12px;color:var(--text3);margin-top:4px">.xlsx 파일만 가능</div>';
+      dropzone.onclick = () => document.getElementById('mc-excel-input').click();
+
+      if (data.error) { showToast(data.error); return; }
+      excelCalcResults = data.products;
+      renderExcelResults(data);
+    })
+    .catch(e => {
+      dropzone.innerHTML = '<div style="font-size:28px;margin-bottom:8px">📄</div><div style="font-size:14px;font-weight:600">작성한 엑셀 파일을 여기에 드래그하거나 클릭</div>';
+      dropzone.onclick = () => document.getElementById('mc-excel-input').click();
+      showToast('오류: ' + e.message);
+    });
+}
+
+function renderExcelResults(data) {
+  const container = document.getElementById('mc-excel-result');
+  container.style.display = 'block';
+
+  let html = `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <div>
+        <span style="font-size:16px;font-weight:700">계산 완료!</span>
+        <span style="font-size:13px;color:var(--text3);margin-left:8px">${data.totalProducts}개 상품, ${data.totalRows}개 행</span>
+      </div>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-green btn-sm" onclick="saveAllExcelProducts()">💾 전체 저장</button>
+      </div>
+    </div>`;
+
+  data.products.forEach((p, idx) => {
+    const c = p.calc;
+    const m = c?.modes?.[1];
+    const normalRate = m?.alwayz?.normal?.rate || 0;
+    const mc = normalRate >= 30 ? 'green' : (normalRate >= 15 ? 'blue' : (normalRate >= 0 ? 'orange' : 'red'));
+    const statusIcon = normalRate >= 30 ? '✅' : (normalRate >= 15 ? '🟢' : (normalRate >= 0 ? '🟡' : '🔴'));
+
+    html += `<div class="card" style="padding:14px;border-left:3px solid var(--${mc})">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <div style="font-size:15px;font-weight:700">${statusIcon} ${escHTML(p.name)}</div>
+        <div style="display:flex;gap:6px;font-size:11px">
+          <span class="season-badge" style="${p.isTaxable ? 'background:var(--red-bg);color:var(--red)' : 'background:var(--green-bg);color:var(--green)'}">${p.isTaxable ? '과세' : '면세'}</span>
+          <span class="season-badge" style="background:var(--bg3);color:var(--text3)">${p.category || ''}</span>
+        </div>
+      </div>`;
+
+    // 옵션 테이블
+    if (c.options && c.options.length > 0) {
+      html += `<div style="overflow-x:auto">
+        <table class="product-table" style="font-size:12px;margin:0">
+          <thead><tr>
+            <th>옵션</th><th style="width:65px">원가</th>
+            <th style="width:80px">판매가(기본)</th>
+            <th style="width:90px">올웨이즈 마진</th>
+            <th style="width:80px">토스 마진</th>
+          </tr></thead><tbody>`;
+
+      c.options.forEach(opt => {
+        const om = opt.modes?.[1];
+        const omc = (om?.rate||0) >= 15 ? 'positive' : ((om?.rate||0) >= 0 ? 'warn' : 'negative');
+        const otc = (om?.tossRate||0) >= 15 ? 'positive' : ((om?.tossRate||0) >= 0 ? 'warn' : 'negative');
+        html += `<tr>
+          <td style="font-weight:600">${escHTML(opt.optionName)}</td>
+          <td class="num">${formatNum(opt.cost)}원</td>
+          <td class="num">${formatNum(om?.price||0)}원</td>
+          <td class="num ${omc}" style="font-weight:700">${formatNum(om?.profit||0)}원 <span style="font-size:10px">${om?.rate||0}%</span></td>
+          <td class="num ${otc}" style="font-weight:700">${formatNum(om?.tossProfit||0)}원 <span style="font-size:10px">${om?.tossRate||0}%</span></td>
+        </tr>`;
+      });
+      html += '</tbody></table></div>';
+    } else {
+      // 옵션 없는 단일 상품
+      html += `<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;font-size:12px">
+        <div style="background:var(--bg3);padding:6px 8px;border-radius:4px;text-align:center">
+          <div style="color:var(--text3)">원가</div><div style="font-weight:700">${formatNum(p.cost)}원</div>
+        </div>
+        <div style="background:var(--bg3);padding:6px 8px;border-radius:4px;text-align:center">
+          <div style="color:var(--text3)">판매가</div><div style="font-weight:700">${formatNum(m?.price||0)}원</div>
+        </div>
+        <div style="background:var(--bg3);padding:6px 8px;border-radius:4px;text-align:center">
+          <div style="color:var(--text3)">올웨이즈</div><div style="font-weight:700;color:var(--${mc})">${formatNum(m?.alwayz?.normal?.profit||0)}원</div>
+        </div>
+        <div style="background:var(--bg3);padding:6px 8px;border-radius:4px;text-align:center">
+          <div style="color:var(--text3)">토스</div><div style="font-weight:700">${formatNum(m?.toss?.normal?.profit||0)}원</div>
+        </div>
+      </div>`;
+    }
+    html += '</div>';
+  });
+
+  container.innerHTML = html;
+  container.scrollIntoView({ behavior: 'smooth' });
+}
+
+function saveAllExcelProducts() {
+  if (!excelCalcResults || excelCalcResults.length === 0) return;
+  fetch('/api/margin-products/save-bulk', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ products: excelCalcResults })
+  })
+  .then(r => r.json())
+  .then(d => {
+    showToast(`✅ ${d.total}개 상품 저장 완료!`);
+    loadSavedProducts();
+  })
+  .catch(e => showToast('저장 오류'));
+}
 
 function addOptionRow(name, cost) {
   optionCount++;

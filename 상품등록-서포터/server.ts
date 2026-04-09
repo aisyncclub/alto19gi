@@ -287,6 +287,127 @@ function analyzeExcel(buffer: ArrayBuffer, colMap?: { name?: string; price?: str
   return { products, headers, detected: { nameCol, priceCol, catCol, weightCol } };
 }
 
+// ── 마진 템플릿 생성 ──
+function createMarginTemplate(): Buffer {
+  const wb = XLSX.utils.book_new();
+
+  // 입력 시트
+  const sampleData = [
+    { "상품명": "예) 성주 참외", "옵션명": "3kg", "원가": 8000, "택배비": 0, "과세구분": "면세", "카테고리": "신선식품" },
+    { "상품명": "예) 성주 참외", "옵션명": "5kg", "원가": 12000, "택배비": 0, "과세구분": "면세", "카테고리": "신선식품" },
+    { "상품명": "예) 성주 참외", "옵션명": "10kg", "원가": 20000, "택배비": 0, "과세구분": "면세", "카테고리": "신선식품" },
+    { "상품명": "", "옵션명": "", "원가": "", "택배비": "", "과세구분": "", "카테고리": "" },
+  ];
+  const ws = XLSX.utils.json_to_sheet(sampleData);
+  ws["!cols"] = [
+    { wch: 20 }, { wch: 15 }, { wch: 12 }, { wch: 10 }, { wch: 12 }, { wch: 15 },
+  ];
+  XLSX.utils.book_append_sheet(wb, ws, "상품입력");
+
+  // 안내 시트
+  const guideData = [
+    { "항목": "상품명", "설명": "상품 이름 (같은 상품의 옵션은 상품명을 동일하게 적어주세요)", "예시": "성주 참외" },
+    { "항목": "옵션명", "설명": "용량, 무게, 개수 등 (없으면 비워두세요)", "예시": "3kg" },
+    { "항목": "원가", "설명": "도매에서 사는 가격 (숫자만)", "예시": "8000" },
+    { "항목": "택배비", "설명": "내가 부담하는 택배비 (무료배송이면 0)", "예시": "0" },
+    { "항목": "과세구분", "설명": "면세 또는 과세 (과일/채소=면세, 가공식품/공산품=과세)", "예시": "면세" },
+    { "항목": "카테고리", "설명": "아래 카테고리 중 선택 (수수료가 달라요)", "예시": "신선식품" },
+    { "항목": "", "설명": "", "예시": "" },
+    { "항목": "[ 카테고리 목록 ]", "설명": "수수료율", "예시": "" },
+    { "항목": "신선식품", "설명": "5.8%", "예시": "과일, 채소, 생선, 고기" },
+    { "항목": "건강식품", "설명": "7.6%", "예시": "건강즙, 영양제" },
+    { "항목": "가공식품", "설명": "10.6%", "예시": "과자, 음료, 즉석식품" },
+    { "항목": "생활소품", "설명": "7.8%", "예시": "소형 생활용품" },
+    { "항목": "뷰티", "설명": "9.6%", "예시": "화장품, 스킨케어" },
+    { "항목": "패션", "설명": "10.5%", "예시": "의류, 잡화" },
+    { "항목": "생활용품", "설명": "10.8%", "예시": "대형 생활용품, 주방" },
+  ];
+  const ws2 = XLSX.utils.json_to_sheet(guideData);
+  ws2["!cols"] = [{ wch: 18 }, { wch: 50 }, { wch: 25 }];
+  XLSX.utils.book_append_sheet(wb, ws2, "작성방법");
+
+  return XLSX.write(wb, { type: "buffer", bookType: "xlsx" });
+}
+
+// ── 엑셀 마진 일괄 계산 ──
+function calcMarginFromExcel(buffer: ArrayBuffer) {
+  const wb = XLSX.read(buffer, { type: "buffer" });
+  // 첫 번째 시트 (또는 "상품입력" 시트)
+  const sheetName = wb.SheetNames.includes("상품입력") ? "상품입력" : wb.SheetNames[0];
+  const ws = wb.Sheets[sheetName];
+  const data = XLSX.utils.sheet_to_json(ws, { defval: "" }) as Record<string, any>[];
+
+  if (data.length === 0) return { error: "데이터가 비어있습니다", products: [] };
+
+  // 컬럼 매핑
+  const headers = Object.keys(data[0]);
+  const nameCol = findCol(headers, ["상품명","품명","제품명","이름","name"]);
+  const optCol = findCol(headers, ["옵션","옵션명","용량","규격","무게","option"]);
+  const costCol = findCol(headers, ["원가","매입가","도매가","공급가","cost","가격"]);
+  const delCol = findCol(headers, ["택배비","배송비","delivery"]);
+  const taxCol = findCol(headers, ["과세","과세구분","세금","tax"]);
+  const catCol = findCol(headers, ["카테고리","분류","category"]);
+
+  if (!nameCol || !costCol) {
+    return { error: "상품명과 원가 컬럼을 찾을 수 없습니다. 템플릿을 사용해주세요.", products: [], headers };
+  }
+
+  // 상품별로 그룹핑 (같은 상품명 = 같은 상품의 옵션들)
+  const productMap = new Map<string, { name: string; deliveryCost: number; isTaxable: boolean; category: string; options: { optionName: string; cost: number }[] }>();
+
+  for (const row of data) {
+    const name = (row[nameCol] + "").trim();
+    if (!name) continue;
+    const cost = parseInt((row[costCol] + "").replace(/[^0-9]/g, "")) || 0;
+    if (cost <= 0) continue;
+
+    const optName = optCol ? (row[optCol] + "").trim() : "";
+    const delCost = delCol ? (parseInt((row[delCol] + "").replace(/[^0-9]/g, "")) || 0) : 0;
+    const taxStr = taxCol ? (row[taxCol] + "").trim() : "";
+    const isTaxable = taxStr.includes("과세") || taxStr.toLowerCase() === "true";
+    const category = catCol ? (row[catCol] + "").trim() : "";
+
+    if (!productMap.has(name)) {
+      productMap.set(name, {
+        name,
+        deliveryCost: delCost,
+        isTaxable,
+        category: category || (isFresh(name, "") ? "신선식품" : "가공식품"),
+        options: [],
+      });
+    }
+
+    const product = productMap.get(name)!;
+    product.options.push({ optionName: optName || `${cost}원`, cost });
+  }
+
+  // 마진 계산
+  const results: any[] = [];
+  for (const [, p] of productMap) {
+    const mainCost = p.options[0]?.cost || 0;
+    const input: MarginInput = {
+      name: p.name,
+      cost: mainCost,
+      deliveryCost: p.deliveryCost,
+      isTaxable: p.isTaxable,
+      category: p.category,
+      options: p.options,
+    };
+    const calc = calcMargin(input);
+    results.push({
+      ...p,
+      cost: mainCost,
+      roas: 300,
+      timeDiscount: 20,
+      id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+      createdAt: new Date().toISOString(),
+      calc,
+    });
+  }
+
+  return { products: results, totalRows: data.length, totalProducts: results.length };
+}
+
 // ── Bun 서버 ──
 const server = Bun.serve({
   port: PORT,
@@ -296,6 +417,51 @@ const server = Bun.serve({
     // CORS
     if (req.method === "OPTIONS") {
       return new Response(null, { headers: { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Methods": "GET,POST,DELETE", "Access-Control-Allow-Headers": "Content-Type" } });
+    }
+
+    // API: 마진 템플릿 다운로드
+    if (url.pathname === "/api/margin-template" && req.method === "GET") {
+      try {
+        const buf = createMarginTemplate();
+        return new Response(buf, {
+          headers: {
+            "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "Content-Disposition": `attachment; filename="${encodeURIComponent("마진계산_템플릿.xlsx")}"`,
+            "Access-Control-Allow-Origin": "*",
+          },
+        });
+      } catch (e: any) {
+        return Response.json({ error: e.message }, { status: 500, headers: { "Access-Control-Allow-Origin": "*" } });
+      }
+    }
+
+    // API: 엑셀 마진 일괄 계산
+    if (url.pathname === "/api/margin-calc-excel" && req.method === "POST") {
+      try {
+        const formData = await req.formData();
+        const file = formData.get("file") as File;
+        if (!file) return Response.json({ error: "파일이 없습니다" }, { status: 400, headers: { "Access-Control-Allow-Origin": "*" } });
+        const buffer = await file.arrayBuffer();
+        const result = calcMarginFromExcel(Buffer.from(buffer));
+        return Response.json(result, { headers: { "Access-Control-Allow-Origin": "*" } });
+      } catch (e: any) {
+        return Response.json({ error: e.message }, { status: 500, headers: { "Access-Control-Allow-Origin": "*" } });
+      }
+    }
+
+    // API: 엑셀 마진 결과 전체 저장
+    if (url.pathname === "/api/margin-products/save-bulk" && req.method === "POST") {
+      try {
+        const body = await req.json();
+        const existing = loadMarginProducts();
+        for (const p of body.products) {
+          existing.push(p);
+        }
+        saveMarginProducts(existing);
+        return Response.json({ ok: true, total: body.products.length }, { headers: { "Access-Control-Allow-Origin": "*" } });
+      } catch (e: any) {
+        return Response.json({ error: e.message }, { status: 500, headers: { "Access-Control-Allow-Origin": "*" } });
+      }
     }
 
     // API: 엑셀 업로드 + 분석
