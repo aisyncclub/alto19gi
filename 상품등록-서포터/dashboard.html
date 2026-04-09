@@ -160,6 +160,23 @@ body{font-family:'Pretendard Variable',-apple-system,system-ui,sans-serif;backgr
 </div>
 
 <div class="container">
+  <!-- 처음 방문 안내 배너 -->
+  <div id="welcome-banner" style="display:none;background:linear-gradient(135deg,rgba(59,130,246,.12),rgba(16,185,129,.12));border:1px solid rgba(59,130,246,.3);border-radius:12px;padding:20px 24px;margin-bottom:20px;cursor:pointer" onclick="switchToTab('guide');dismissBanner()">
+    <div style="display:flex;align-items:center;justify-content:space-between">
+      <div style="display:flex;align-items:center;gap:12px">
+        <span style="font-size:28px">👋</span>
+        <div>
+          <div style="font-size:16px;font-weight:700">처음이세요? 사용법을 먼저 확인해보세요!</div>
+          <div style="font-size:13px;color:var(--text2);margin-top:2px">마진 계산, 엑셀 다운로드, 상품 등록까지 쉽게 따라할 수 있어요</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span class="btn btn-primary btn-sm" style="pointer-events:none">📖 사용법 보기</span>
+        <span class="btn btn-outline btn-sm" onclick="event.stopPropagation();dismissBanner()" style="padding:6px 10px">✕</span>
+      </div>
+    </div>
+  </div>
+
   <!-- TABS -->
   <div class="tabs" id="main-tabs">
     <button class="tab main-tab active" data-tab="find">🔍 상품 찾기</button>
@@ -540,72 +557,207 @@ CS 리스크 낮은 것 위주로.
 
   <!-- TAB 4: 사용법 매뉴얼 -->
   <div class="tab-content" id="tab-guide">
-    <div class="section-title">📖 상품 서포터 사용법</div>
+    <div class="section-title">📖 처음이세요? 여기만 보면 돼요!</div>
 
-    <div class="card" style="border-left:3px solid var(--blue)">
-      <div class="card-title">🚀 시작하기</div>
-      <div style="font-size:14px;line-height:2;color:var(--text2)">
-        <strong style="color:var(--text)">상품 서포터</strong>는 올웨이즈/토스쇼핑 판매에 필요한 모든 것을 도와주는 도구입니다.<br>
-        <strong style="color:var(--blue)">대시보드(이 페이지)</strong> + <strong style="color:var(--green)">클로드 코드(터미널)</strong> 두 가지로 사용합니다.
+    <!-- 한마디 소개 -->
+    <div class="card" style="background:linear-gradient(135deg,rgba(59,130,246,.08),rgba(139,92,246,.08));border:1px solid rgba(59,130,246,.2);text-align:center;padding:32px">
+      <div style="font-size:40px;margin-bottom:12px">🛒</div>
+      <div style="font-size:20px;font-weight:800;margin-bottom:8px">이 상품 팔면 얼마 남을까?</div>
+      <div style="font-size:15px;color:var(--text2)">그걸 자동으로 계산해주는 도구예요.<br>수수료, 택배비, 광고비까지 다 빼고 <strong style="color:var(--green)">진짜 남는 돈</strong>을 알려줍니다.</div>
+    </div>
+
+    <!-- 이 대시보드로 할 수 있는 것 -->
+    <div class="section-title">🎯 여기서 뭘 할 수 있나요?</div>
+    <div class="grid-2" style="margin-bottom:20px">
+      <div class="card" style="text-align:center;cursor:pointer" onclick="switchToTab('margin')">
+        <div style="font-size:32px;margin-bottom:8px">💰</div>
+        <div style="font-size:15px;font-weight:700;margin-bottom:4px">마진 계산기</div>
+        <div style="font-size:12px;color:var(--text3)">원가 넣으면 → 판매가, 수수료,<br>남는 돈 자동 계산</div>
+        <div style="margin-top:8px"><span class="season-badge" style="background:var(--green-bg);color:var(--green)">가장 많이 써요</span></div>
+      </div>
+      <div class="card" style="text-align:center;cursor:pointer" onclick="switchToTab('find')">
+        <div style="font-size:32px;margin-bottom:8px">🔍</div>
+        <div style="font-size:15px;font-weight:700;margin-bottom:4px">상품 찾기</div>
+        <div style="font-size:12px;color:var(--text3)">도매 엑셀 올리면 →<br>마진 좋은 상품 자동 추천</div>
+      </div>
+      <div class="card" style="text-align:center;cursor:pointer" onclick="switchToTab('season')">
+        <div style="font-size:32px;margin-bottom:8px">📅</div>
+        <div style="font-size:15px;font-weight:700;margin-bottom:4px">시즌 캘린더</div>
+        <div style="font-size:12px;color:var(--text3)">이번 달에 뭐가 잘 팔리는지<br>한눈에 확인</div>
+      </div>
+      <div class="card" style="text-align:center;cursor:pointer" onclick="switchToTab('register')">
+        <div style="font-size:32px;margin-bottom:8px">📦</div>
+        <div style="font-size:15px;font-weight:700;margin-bottom:4px">바로 등록</div>
+        <div style="font-size:12px;color:var(--text3)">복사 → 붙여넣기로<br>상품 등록 시작</div>
       </div>
     </div>
 
-    <div class="card" style="border-left:3px solid var(--green)">
-      <div class="card-title">💰 마진 계산기 사용법</div>
-      <div style="font-size:13px;line-height:2;color:var(--text2)">
-        <strong style="color:var(--text)">1단계:</strong> 상단 <strong>"💰 마진 계산기"</strong> 탭 클릭<br>
-        <strong style="color:var(--text)">2단계:</strong> 상품명, 원가, 택배비, 과세구분 입력<br>
-        <strong style="color:var(--text)">3단계:</strong> 옵션이 여러 개면 <strong>"+ 옵션 추가"</strong> 버튼으로 용량/무게별 원가 입력<br>
-        <span style="padding-left:40px;color:var(--text3)">예) 참외 3kg = 8,000원 / 참외 5kg = 12,000원 / 참외 10kg = 20,000원</span><br>
-        <strong style="color:var(--text)">4단계:</strong> "둘 다 계산" 버튼 클릭 → 올웨이즈 + 토스 마진이 한눈에!<br>
-        <strong style="color:var(--text)">5단계:</strong> "💾 상품 저장" 버튼으로 누적 저장<br>
-        <strong style="color:var(--text)">6단계:</strong> 아래 "📊 누적 마진 관리"에서 저장된 상품 확인 + 엑셀 다운로드
-      </div>
-    </div>
+    <!-- 마진 계산 따라하기 -->
+    <div class="section-title">💰 마진 계산 따라하기</div>
 
-    <div class="card" style="border-left:3px solid var(--purple)">
-      <div class="card-title">📊 누적 관리 & 엑셀 다운로드</div>
-      <div style="font-size:13px;line-height:2;color:var(--text2)">
-        <strong style="color:var(--text)">저장된 상품</strong>은 마진 계산기 탭 하단에 누적됩니다.<br>
-        <strong style="color:var(--green)">📥 엑셀 다운로드</strong> 버튼으로 전체 상품의 마진을 엑셀로 내보낼 수 있어요.<br>
-        엑셀에는 <strong>옵션별 원가, 판매가, 마진, 마진율</strong>이 모두 포함됩니다.<br>
-        상품 카드를 클릭하면 <strong>상세 마진 분석</strong>(모드별 비교, 예상 수익)을 볼 수 있어요.
-      </div>
-    </div>
-
-    <div class="card" style="border-left:3px solid var(--orange)">
-      <div class="card-title">📦 클로드 코드로 상품 등록하기</div>
-      <div style="font-size:13px;line-height:2;color:var(--text2)">
-        <strong style="color:var(--text)">터미널에서</strong> 아래와 같이 입력하면 상품명/가격/옵션/태그/상세페이지가 한번에 생성됩니다:<br>
-        <div style="background:var(--bg);padding:12px;border-radius:8px;margin:8px 0;font-family:monospace;font-size:12px;color:var(--green)">
-          상호명: 황금상회<br>
-          상품: 성주 참외 3kg/5kg<br>
-          원가: 3kg 8,000원 / 5kg 12,000원<br>
-          <br>
-          이 상품 등록해줘
+    <div class="card" style="border-left:4px solid var(--blue)">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+        <div style="width:36px;height:36px;border-radius:50%;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;flex-shrink:0">1</div>
+        <div>
+          <div style="font-weight:700;font-size:15px">위에 "💰 마진 계산기" 탭을 눌러요</div>
         </div>
-        <strong style="color:var(--text)">마진 계산만</strong> 하고 싶으면: <span style="color:var(--green)">"참외 원가 8000원 마진 계산해줘"</span><br>
-        <strong style="color:var(--text)">엑셀 대량 등록</strong>: 엑셀 파일 경로와 함께 <span style="color:var(--green)">"이 엑셀로 등록해줘"</span>
       </div>
     </div>
 
-    <div class="card" style="border-left:3px solid var(--pink)">
-      <div class="card-title">🔍 상품 찾기 & 시즌 캘린더</div>
-      <div style="font-size:13px;line-height:2;color:var(--text2)">
-        <strong style="color:var(--text)">상품 찾기 탭:</strong> 도매 엑셀을 업로드하면 시즌 적합도, 마진율, 플랫폼 매칭까지 자동 분석<br>
-        <strong style="color:var(--text)">시즌 캘린더 탭:</strong> 월별 제철 과일/채소 + 공산품 시즌 키워드 확인<br>
-        <strong style="color:var(--text)">바로 등록 탭:</strong> 복사해서 클로드 코드에 붙여넣으면 바로 등록 시작
+    <div class="card" style="border-left:4px solid var(--blue)">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+        <div style="width:36px;height:36px;border-radius:50%;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;flex-shrink:0">2</div>
+        <div>
+          <div style="font-weight:700;font-size:15px">상품 정보를 입력해요</div>
+        </div>
+      </div>
+      <div style="background:var(--bg);padding:16px;border-radius:8px;font-size:13px;line-height:2.2">
+        <div style="display:grid;grid-template-columns:80px 1fr;gap:4px 12px">
+          <span style="color:var(--text3)">상품명</span><span>예) 성주 참외</span>
+          <span style="color:var(--text3)">원가</span><span>도매에서 사는 가격 (예: 8000)</span>
+          <span style="color:var(--text3)">택배비</span><span>보통 0원 (무료배송이면)</span>
+          <span style="color:var(--text3)">과세구분</span><span>과일/채소 = <strong style="color:var(--green)">면세</strong> · 가공식품 = <strong style="color:var(--red)">과세</strong></span>
+        </div>
       </div>
     </div>
 
-    <div class="card" style="background:var(--blue-bg);border:1px solid rgba(59,130,246,.3)">
-      <div class="card-title" style="color:var(--blue)">💡 꿀팁</div>
-      <div style="font-size:13px;line-height:2;color:var(--text2)">
-        • 마진율 <strong style="color:var(--green)">30% 이상</strong>이면 안정적, <strong style="color:var(--orange)">15% 미만</strong>이면 가격 조정 필요<br>
-        • 올웨이즈는 <strong>타임특가 20% + CPS</strong>가 광고비 무료라 가장 유리한 경우가 많아요<br>
-        • 토스쇼핑은 <strong>광고 집행 시 운영수수료 8% 면제</strong> → 수수료 2%만!<br>
-        • 옵션 원가가 다르면 반드시 옵션별로 입력해야 정확한 마진을 알 수 있어요<br>
-        • 저장된 상품은 엑셀로 다운받아서 스프레드시트에서 관리하세요
+    <div class="card" style="border-left:4px solid var(--blue)">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+        <div style="width:36px;height:36px;border-radius:50%;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;flex-shrink:0">3</div>
+        <div>
+          <div style="font-weight:700;font-size:15px">옵션이 여러 개면? (선택사항)</div>
+          <div style="font-size:12px;color:var(--text3)">3kg, 5kg처럼 용량이 다르면 각각 원가가 다르잖아요</div>
+        </div>
+      </div>
+      <div style="background:var(--bg);padding:16px;border-radius:8px;font-size:13px">
+        <div style="margin-bottom:8px"><strong>"+ 옵션 추가"</strong> 버튼을 눌러서 하나씩 추가해요</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;background:var(--bg3);padding:12px;border-radius:6px">
+          <div style="padding:6px 10px;background:var(--bg2);border-radius:4px;font-size:12px">참외 3kg</div>
+          <div style="padding:6px 10px;background:var(--bg2);border-radius:4px;font-size:12px">8,000원</div>
+          <div style="padding:6px 10px;background:var(--bg2);border-radius:4px;font-size:12px">참외 5kg</div>
+          <div style="padding:6px 10px;background:var(--bg2);border-radius:4px;font-size:12px">12,000원</div>
+          <div style="padding:6px 10px;background:var(--bg2);border-radius:4px;font-size:12px">참외 10kg</div>
+          <div style="padding:6px 10px;background:var(--bg2);border-radius:4px;font-size:12px">20,000원</div>
+        </div>
+        <div style="margin-top:8px;font-size:12px;color:var(--text3)">옵션 안 넣으면 위에 입력한 원가 하나로만 계산돼요</div>
+      </div>
+    </div>
+
+    <div class="card" style="border-left:4px solid var(--green)">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+        <div style="width:36px;height:36px;border-radius:50%;background:var(--green);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;flex-shrink:0">4</div>
+        <div>
+          <div style="font-weight:700;font-size:15px">"💰 둘 다 계산" 버튼 클릭!</div>
+          <div style="font-size:12px;color:var(--text3)">올웨이즈 + 토스 마진이 한번에 나와요</div>
+        </div>
+      </div>
+      <div style="background:var(--green-bg);padding:12px;border-radius:8px;font-size:13px;color:var(--green)">
+        결과가 나오면 아래로 스크롤해보세요! 옵션별 판매가, 마진, 전략별 비교가 다 나옵니다.
+      </div>
+    </div>
+
+    <div class="card" style="border-left:4px solid var(--purple)">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+        <div style="width:36px;height:36px;border-radius:50%;background:var(--purple);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;flex-shrink:0">5</div>
+        <div>
+          <div style="font-weight:700;font-size:15px">"💾 상품 저장"으로 기록 남기기</div>
+          <div style="font-size:12px;color:var(--text3)">저장하면 나중에 다시 볼 수 있어요</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="border-left:4px solid var(--orange)">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+        <div style="width:36px;height:36px;border-radius:50%;background:var(--orange);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;flex-shrink:0">6</div>
+        <div>
+          <div style="font-weight:700;font-size:15px">"📥 엑셀 다운로드"로 파일 받기</div>
+          <div style="font-size:12px;color:var(--text3)">저장된 상품 전체를 엑셀 파일로 다운로드</div>
+        </div>
+      </div>
+      <div style="background:var(--bg);padding:12px;border-radius:8px;font-size:13px;color:var(--text2)">
+        엑셀 파일에는 <strong style="color:var(--text)">옵션별 원가, 판매가, 마진, 마진율</strong>이 한 줄씩 정리되어 있어요.<br>
+        이걸로 상품 관리 스프레드시트를 만들면 편해요!
+      </div>
+    </div>
+
+    <!-- 결과 읽는 법 -->
+    <div class="section-title">📊 결과 읽는 법</div>
+
+    <div class="card">
+      <div class="card-title">색깔이 뭘 뜻하나요?</div>
+      <div style="display:grid;grid-template-columns:auto 1fr;gap:8px 16px;font-size:14px;line-height:2;margin-top:8px">
+        <span style="display:inline-block;width:16px;height:16px;background:var(--green);border-radius:4px"></span>
+        <span><strong style="color:var(--green)">초록색 (30% 이상)</strong> — 마진 넉넉! 안심하고 팔아도 돼요</span>
+        <span style="display:inline-block;width:16px;height:16px;background:var(--blue);border-radius:4px"></span>
+        <span><strong style="color:var(--blue)">파란색 (15~30%)</strong> — 괜찮아요, 적정 마진</span>
+        <span style="display:inline-block;width:16px;height:16px;background:var(--orange);border-radius:4px"></span>
+        <span><strong style="color:var(--orange)">주황색 (0~15%)</strong> — 마진이 좀 빡빡해요</span>
+        <span style="display:inline-block;width:16px;height:16px;background:var(--red);border-radius:4px"></span>
+        <span><strong style="color:var(--red)">빨간색 (마이너스)</strong> — 팔수록 손해! 가격 올려야 해요</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">공격적/기본/널널이 뭔가요?</div>
+      <div style="font-size:14px;line-height:2;margin-top:8px;color:var(--text2)">
+        판매가를 정하는 3가지 방식이에요. 원가에 곱하는 배수가 달라요.<br>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px">
+        <div style="background:var(--red-bg);padding:12px;border-radius:8px;text-align:center">
+          <div style="font-size:20px;margin-bottom:4px">🔥</div>
+          <div style="font-weight:700;font-size:13px">공격적 (x1.55)</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:4px">싸게 팔아서<br>빨리 팔기</div>
+        </div>
+        <div style="background:var(--blue-bg);padding:12px;border-radius:8px;text-align:center;border:2px solid var(--blue)">
+          <div style="font-size:20px;margin-bottom:4px">👍</div>
+          <div style="font-weight:700;font-size:13px;color:var(--blue)">기본 (x1.8)</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:4px">보통 이걸로<br>시작해요</div>
+        </div>
+        <div style="background:var(--green-bg);padding:12px;border-radius:8px;text-align:center">
+          <div style="font-size:20px;margin-bottom:4px">💰</div>
+          <div style="font-weight:700;font-size:13px">널널 (x2.2)</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:4px">마진 넉넉하게<br>여유있게</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">전략 A/B/C는 뭔가요?</div>
+      <div style="font-size:13px;margin-top:8px">
+        <div style="padding:12px;background:var(--bg);border-radius:8px;margin-bottom:8px;border-left:3px solid var(--green)">
+          <strong style="color:var(--green)">전략A: 타임특가 + CPS</strong><br>
+          <span style="color:var(--text3)">할인 행사를 하면 → 광고비가 무료! 처음에 빨리 팔고 싶을 때 좋아요</span>
+        </div>
+        <div style="padding:12px;background:var(--bg);border-radius:8px;margin-bottom:8px;border-left:3px solid var(--blue)">
+          <strong style="color:var(--blue)">전략B: 일반가 + 광고</strong><br>
+          <span style="color:var(--text3)">할인 없이 팔면서 광고를 돌려요. 꾸준히 팔고 싶을 때</span>
+        </div>
+        <div style="padding:12px;background:var(--bg);border-radius:8px;border-left:3px solid var(--purple)">
+          <strong style="color:var(--purple)">전략C: 일반가 + 노출 광고</strong><br>
+          <span style="color:var(--text3)">사람들한테 내 상품을 보여주는 광고. 새 상품 알릴 때</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 자주 묻는 질문 -->
+    <div class="section-title">❓ 자주 묻는 질문</div>
+
+    <div class="card">
+      <div style="font-size:14px;line-height:2.2">
+        <strong style="color:var(--blue)">Q. 과세/면세를 모르겠어요</strong><br>
+        <span style="color:var(--text2)">→ 과일, 채소, 생선, 고기 등 자연산 식품 = <strong style="color:var(--green)">면세</strong></span><br>
+        <span style="color:var(--text2)">→ 과자, 음료, 생활용품, 화장품 등 = <strong style="color:var(--red)">과세</strong></span><br><br>
+
+        <strong style="color:var(--blue)">Q. 택배비는 뭘 넣어야 하나요?</strong><br>
+        <span style="color:var(--text2)">→ 내가 부담하는 택배비예요. 무료배송이면 <strong>0</strong>을 넣으세요</span><br><br>
+
+        <strong style="color:var(--blue)">Q. ROAS가 뭔가요?</strong><br>
+        <span style="color:var(--text2)">→ 광고비 대비 매출이에요. 300%면 광고비 1만원 쓰면 매출 3만원.</span><br>
+        <span style="color:var(--text2)">→ 잘 모르면 기본값(300%) 그대로 두면 돼요!</span><br><br>
+
+        <strong style="color:var(--blue)">Q. 상품 등록은 여기서 하나요?</strong><br>
+        <span style="color:var(--text2)">→ 아니요! 상품 등록(상품명, 태그, 상세페이지 만들기)은 <strong>클로드 코드(터미널)</strong>에서 해요.</span><br>
+        <span style="color:var(--text2)">→ "📦 바로 등록" 탭에서 복사 → 붙여넣기하면 됩니다!</span>
       </div>
     </div>
   </div>
@@ -662,13 +814,18 @@ const seasonData = FOOD_SEASONS[currentMonth] || FOOD_SEASONS[1];
 const allSeasonKeywords = [...seasonData.fruits, ...seasonData.vegs].map(s => s.toLowerCase());
 
 // ── TAB SWITCHING ──
+function switchToTab(tabName) {
+  document.querySelectorAll('#main-tabs .tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  const btn = document.querySelector(`#main-tabs .tab[data-tab="${tabName}"]`);
+  if (btn) btn.classList.add('active');
+  const el = document.getElementById('tab-' + tabName);
+  if (el) el.classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
 document.querySelectorAll('#main-tabs .tab').forEach(tab => {
-  tab.addEventListener('click', () => {
-    document.querySelectorAll('#main-tabs .tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-    tab.classList.add('active');
-    document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
-  });
+  tab.addEventListener('click', () => switchToTab(tab.dataset.tab));
 });
 
 // ── FILE DROP/SELECT ──
@@ -1921,6 +2078,19 @@ function exportMarginExcel() {
 document.getElementById('mc-detail-modal').addEventListener('click', function(e) {
   if (e.target === this) this.classList.remove('show');
 });
+
+// 처음 방문 배너
+function dismissBanner() {
+  document.getElementById('welcome-banner').style.display = 'none';
+  try { localStorage.setItem('guide-seen', '1'); } catch(e) {}
+}
+try {
+  if (!localStorage.getItem('guide-seen')) {
+    document.getElementById('welcome-banner').style.display = 'block';
+  }
+} catch(e) {
+  document.getElementById('welcome-banner').style.display = 'block';
+}
 
 // 페이지 로드 시 저장된 상품 불러오기
 setTimeout(loadSavedProducts, 500);
