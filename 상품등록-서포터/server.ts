@@ -38,10 +38,15 @@ const ALWAYZ_COMM: Record<string, number> = {
 };
 
 // ── 마진 계산 함수 ──
+interface OptionInput {
+  optionName: string; cost: number;
+}
+
 interface MarginInput {
   name: string; cost: number; deliveryCost: number;
   isTaxable: boolean; // true=과세, false=면세
   category?: string; roas?: number; timeDiscount?: number;
+  options?: OptionInput[]; // 옵션별 원가
 }
 
 function calcMargin(input: MarginInput) {
@@ -112,10 +117,33 @@ function calcMargin(input: MarginInput) {
     };
   });
 
+  // 옵션별 계산
+  const optionResults = (input.options && input.options.length > 0) ? input.options.map(opt => {
+    const optModes = [
+      { label: "공격적", mult: 1.55 },
+      { label: "기본", mult: 1.8 },
+      { label: "널널", mult: 2.2 },
+    ].map(m => {
+      const price = prettyPrice(opt.cost * m.mult);
+      const vat = isTaxable ? Math.round(price / 11) : 0;
+      const commission = Math.round(price * commRateVAT);
+      const profit = price - opt.cost - deliveryCost - commission - vat;
+      const rate = +((profit / price) * 100).toFixed(1);
+      // 토스
+      const tossComm = Math.round(price * 0.10);
+      const tossVat = isTaxable ? Math.round(price / 11) : 0;
+      const tossProfit = price - opt.cost - deliveryCost - tossComm - tossVat;
+      const tossRate = +((tossProfit / price) * 100).toFixed(1);
+      return { mode: m.label, mult: m.mult, price, profit, rate, tossProfit, tossRate };
+    });
+    return { optionName: opt.optionName, cost: opt.cost, modes: optModes };
+  }) : [];
+
   return {
     name, cost, deliveryCost, isTaxable, category: category || (fresh ? "신선식품" : "가공식품"),
     commRate, commRateVAT, roas, timeDiscount,
     modes: results,
+    options: optionResults,
   };
 }
 
@@ -372,44 +400,65 @@ const server = Bun.serve({
           return Response.json({ error: "저장된 상품이 없습니다" }, { status: 404, headers: { "Access-Control-Allow-Origin": "*" } });
         }
 
-        const rows = products.map((p: any) => {
+        const rows: any[] = [];
+        products.forEach((p: any) => {
           const c = p.calc;
           const m = c?.modes?.[1]; // 기본 모드
-          const agg = c?.modes?.[0]; // 공격적
-          const rel = c?.modes?.[2]; // 널널
-          return {
-            "상품명": p.name,
-            "원가": p.cost,
-            "택배비": p.deliveryCost,
-            "과세구분": p.isTaxable ? "과세" : "면세",
-            "카테고리": p.category || "",
-            "ROAS(%)": p.roas || 300,
-            "타임특가할인(%)": p.timeDiscount || 20,
-            // 공격적
-            "공격적_판매가": agg?.price || 0,
-            "공격적_일반마진": agg?.alwayz?.normal?.profit || 0,
-            "공격적_마진율(%)": agg?.alwayz?.normal?.rate || 0,
-            // 기본
-            "기본_판매가": m?.price || 0,
-            "기본_일반마진": m?.alwayz?.normal?.profit || 0,
-            "기본_마진율(%)": m?.alwayz?.normal?.rate || 0,
-            // 널널
-            "널널_판매가": rel?.price || 0,
-            "널널_일반마진": rel?.alwayz?.normal?.profit || 0,
-            "널널_마진율(%)": rel?.alwayz?.normal?.rate || 0,
-            // 올웨이즈 전략
-            "올웨이즈_타임특가+CPS_마진": m?.alwayz?.timeCPS?.profit || 0,
-            "올웨이즈_타임특가+CPS_율(%)": m?.alwayz?.timeCPS?.rate || 0,
-            "올웨이즈_타임특가+CPC_마진": m?.alwayz?.timeCPC?.profit || 0,
-            "올웨이즈_일반+CPC_마진": m?.alwayz?.cpc?.profit || 0,
-            // 토스
-            "토스_일반_마진": m?.toss?.normal?.profit || 0,
-            "토스_일반_율(%)": m?.toss?.normal?.rate || 0,
-            "토스_광고_마진": m?.toss?.ad?.profit || 0,
-            "토스_광고_율(%)": m?.toss?.ad?.rate || 0,
-            // 메타
-            "등록일": p.createdAt ? new Date(p.createdAt).toLocaleDateString("ko-KR") : "",
-          };
+          const opts = c?.options;
+
+          // 옵션이 있으면 옵션별 행, 없으면 상품 1행
+          if (opts && opts.length > 0) {
+            opts.forEach((opt: any) => {
+              const om = opt.modes?.[1]; // 기본 모드
+              const oa = opt.modes?.[0]; // 공격적
+              const or_ = opt.modes?.[2]; // 널널
+              rows.push({
+                "상품명": p.name,
+                "옵션명": opt.optionName,
+                "원가": opt.cost,
+                "택배비": p.deliveryCost,
+                "과세구분": p.isTaxable ? "과세" : "면세",
+                "카테고리": p.category || "",
+                "공격적_판매가": oa?.price || 0,
+                "공격적_마진": oa?.profit || 0,
+                "공격적_마진율(%)": oa?.rate || 0,
+                "기본_판매가": om?.price || 0,
+                "기본_마진": om?.profit || 0,
+                "기본_마진율(%)": om?.rate || 0,
+                "널널_판매가": or_?.price || 0,
+                "널널_마진": or_?.profit || 0,
+                "널널_마진율(%)": or_?.rate || 0,
+                "토스_일반_마진": om?.tossProfit || 0,
+                "토스_마진율(%)": om?.tossRate || 0,
+                "올웨이즈_타임특가+CPS": m?.alwayz?.timeCPS?.profit || 0,
+                "올웨이즈_CPC": m?.alwayz?.cpc?.profit || 0,
+                "등록일": p.createdAt ? new Date(p.createdAt).toLocaleDateString("ko-KR") : "",
+              });
+            });
+          } else {
+            rows.push({
+              "상품명": p.name,
+              "옵션명": "-",
+              "원가": p.cost,
+              "택배비": p.deliveryCost,
+              "과세구분": p.isTaxable ? "과세" : "면세",
+              "카테고리": p.category || "",
+              "공격적_판매가": c?.modes?.[0]?.price || 0,
+              "공격적_마진": c?.modes?.[0]?.alwayz?.normal?.profit || 0,
+              "공격적_마진율(%)": c?.modes?.[0]?.alwayz?.normal?.rate || 0,
+              "기본_판매가": m?.price || 0,
+              "기본_마진": m?.alwayz?.normal?.profit || 0,
+              "기본_마진율(%)": m?.alwayz?.normal?.rate || 0,
+              "널널_판매가": c?.modes?.[2]?.price || 0,
+              "널널_마진": c?.modes?.[2]?.alwayz?.normal?.profit || 0,
+              "널널_마진율(%)": c?.modes?.[2]?.alwayz?.normal?.rate || 0,
+              "토스_일반_마진": m?.toss?.normal?.profit || 0,
+              "토스_마진율(%)": m?.toss?.normal?.rate || 0,
+              "올웨이즈_타임특가+CPS": m?.alwayz?.timeCPS?.profit || 0,
+              "올웨이즈_CPC": m?.alwayz?.cpc?.profit || 0,
+              "등록일": p.createdAt ? new Date(p.createdAt).toLocaleDateString("ko-KR") : "",
+            });
+          }
         });
 
         const wb = XLSX.utils.book_new();
@@ -417,13 +466,12 @@ const server = Bun.serve({
 
         // 열 너비 설정
         ws["!cols"] = [
-          { wch: 20 }, { wch: 10 }, { wch: 8 }, { wch: 8 }, { wch: 12 },
-          { wch: 10 }, { wch: 14 },
-          { wch: 12 }, { wch: 14 }, { wch: 12 },
-          { wch: 12 }, { wch: 14 }, { wch: 12 },
-          { wch: 12 }, { wch: 14 }, { wch: 12 },
-          { wch: 20 }, { wch: 20 }, { wch: 20 }, { wch: 18 },
-          { wch: 14 }, { wch: 14 }, { wch: 14 }, { wch: 14 },
+          { wch: 18 }, { wch: 18 }, { wch: 10 }, { wch: 8 }, { wch: 8 }, { wch: 12 },
+          { wch: 12 }, { wch: 12 }, { wch: 12 },
+          { wch: 12 }, { wch: 12 }, { wch: 12 },
+          { wch: 12 }, { wch: 12 }, { wch: 12 },
+          { wch: 14 }, { wch: 12 },
+          { wch: 18 }, { wch: 14 },
           { wch: 12 },
         ];
 

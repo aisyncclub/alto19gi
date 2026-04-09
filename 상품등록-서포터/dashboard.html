@@ -155,7 +155,7 @@ body{font-family:'Pretendard Variable',-apple-system,system-ui,sans-serif;backgr
 
 <div class="header">
   <div class="header-badge">19기 AI 세자클</div>
-  <h1>상품 <span>서포터 v2</span></h1>
+  <h1>상품 <span>서포터 v2.1</span></h1>
   <p>상품 찾기 → 마진 분석 → 등록까지 원스톱</p>
 </div>
 
@@ -166,6 +166,7 @@ body{font-family:'Pretendard Variable',-apple-system,system-ui,sans-serif;backgr
     <button class="tab main-tab" data-tab="margin">💰 마진 계산기</button>
     <button class="tab main-tab" data-tab="season">📅 시즌 캘린더</button>
     <button class="tab main-tab" data-tab="register">📦 바로 등록</button>
+    <button class="tab main-tab" data-tab="guide">📖 사용법</button>
   </div>
 
   <!-- TAB 1: 상품 찾기 -->
@@ -257,6 +258,16 @@ body{font-family:'Pretendard Variable',-apple-system,system-ui,sans-serif;backgr
           </select>
         </div>
       </div>
+      <!-- 옵션 입력 -->
+      <div style="margin-top:16px;padding:16px;background:var(--bg3);border-radius:8px;border:1px solid var(--border)">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <label style="font-size:13px;font-weight:700">📦 옵션별 원가 (용량/무게별 가격이 다르면 입력)</label>
+          <button class="btn btn-sm btn-outline" onclick="addOptionRow()">+ 옵션 추가</button>
+        </div>
+        <div style="font-size:11px;color:var(--text3);margin-bottom:8px">옵션을 추가하면 옵션별 판매가/마진을 비교할 수 있어요. 미입력 시 위의 원가로 계산됩니다.</div>
+        <div id="mc-options-list"></div>
+      </div>
+
       <div style="display:flex;gap:8px;margin-top:16px">
         <button class="btn" onclick="calcMarginUI('alwayz')" style="flex:1;background:var(--blue);color:#fff">🟢 올웨이즈 계산</button>
         <button class="btn" onclick="calcMarginUI('toss')" style="flex:1;background:var(--pink);color:#fff">🟣 토스 계산</button>
@@ -318,6 +329,9 @@ body{font-family:'Pretendard Variable',-apple-system,system-ui,sans-serif;backgr
           </div>
           <div id="mc-visual"></div>
         </div>
+
+        <!-- 옵션별 비교 -->
+        <div id="mc-options-compare" style="display:none"></div>
 
         <!-- 전략A: 타임특가 -->
         <div class="card" style="border-left:3px solid var(--green)">
@@ -521,6 +535,78 @@ CS 리스크 낮은 것 위주로.
 원가 5,000원 이하, 묶음 세트 가능한 것.
 올웨이즈+토스 둘 다 적합한 것.
 <button class="btn btn-copy btn-sm copy-btn" onclick="copyText('prompt-domemae')">복사</button></div>
+    </div>
+  </div>
+
+  <!-- TAB 4: 사용법 매뉴얼 -->
+  <div class="tab-content" id="tab-guide">
+    <div class="section-title">📖 상품 서포터 사용법</div>
+
+    <div class="card" style="border-left:3px solid var(--blue)">
+      <div class="card-title">🚀 시작하기</div>
+      <div style="font-size:14px;line-height:2;color:var(--text2)">
+        <strong style="color:var(--text)">상품 서포터</strong>는 올웨이즈/토스쇼핑 판매에 필요한 모든 것을 도와주는 도구입니다.<br>
+        <strong style="color:var(--blue)">대시보드(이 페이지)</strong> + <strong style="color:var(--green)">클로드 코드(터미널)</strong> 두 가지로 사용합니다.
+      </div>
+    </div>
+
+    <div class="card" style="border-left:3px solid var(--green)">
+      <div class="card-title">💰 마진 계산기 사용법</div>
+      <div style="font-size:13px;line-height:2;color:var(--text2)">
+        <strong style="color:var(--text)">1단계:</strong> 상단 <strong>"💰 마진 계산기"</strong> 탭 클릭<br>
+        <strong style="color:var(--text)">2단계:</strong> 상품명, 원가, 택배비, 과세구분 입력<br>
+        <strong style="color:var(--text)">3단계:</strong> 옵션이 여러 개면 <strong>"+ 옵션 추가"</strong> 버튼으로 용량/무게별 원가 입력<br>
+        <span style="padding-left:40px;color:var(--text3)">예) 참외 3kg = 8,000원 / 참외 5kg = 12,000원 / 참외 10kg = 20,000원</span><br>
+        <strong style="color:var(--text)">4단계:</strong> "둘 다 계산" 버튼 클릭 → 올웨이즈 + 토스 마진이 한눈에!<br>
+        <strong style="color:var(--text)">5단계:</strong> "💾 상품 저장" 버튼으로 누적 저장<br>
+        <strong style="color:var(--text)">6단계:</strong> 아래 "📊 누적 마진 관리"에서 저장된 상품 확인 + 엑셀 다운로드
+      </div>
+    </div>
+
+    <div class="card" style="border-left:3px solid var(--purple)">
+      <div class="card-title">📊 누적 관리 & 엑셀 다운로드</div>
+      <div style="font-size:13px;line-height:2;color:var(--text2)">
+        <strong style="color:var(--text)">저장된 상품</strong>은 마진 계산기 탭 하단에 누적됩니다.<br>
+        <strong style="color:var(--green)">📥 엑셀 다운로드</strong> 버튼으로 전체 상품의 마진을 엑셀로 내보낼 수 있어요.<br>
+        엑셀에는 <strong>옵션별 원가, 판매가, 마진, 마진율</strong>이 모두 포함됩니다.<br>
+        상품 카드를 클릭하면 <strong>상세 마진 분석</strong>(모드별 비교, 예상 수익)을 볼 수 있어요.
+      </div>
+    </div>
+
+    <div class="card" style="border-left:3px solid var(--orange)">
+      <div class="card-title">📦 클로드 코드로 상품 등록하기</div>
+      <div style="font-size:13px;line-height:2;color:var(--text2)">
+        <strong style="color:var(--text)">터미널에서</strong> 아래와 같이 입력하면 상품명/가격/옵션/태그/상세페이지가 한번에 생성됩니다:<br>
+        <div style="background:var(--bg);padding:12px;border-radius:8px;margin:8px 0;font-family:monospace;font-size:12px;color:var(--green)">
+          상호명: 황금상회<br>
+          상품: 성주 참외 3kg/5kg<br>
+          원가: 3kg 8,000원 / 5kg 12,000원<br>
+          <br>
+          이 상품 등록해줘
+        </div>
+        <strong style="color:var(--text)">마진 계산만</strong> 하고 싶으면: <span style="color:var(--green)">"참외 원가 8000원 마진 계산해줘"</span><br>
+        <strong style="color:var(--text)">엑셀 대량 등록</strong>: 엑셀 파일 경로와 함께 <span style="color:var(--green)">"이 엑셀로 등록해줘"</span>
+      </div>
+    </div>
+
+    <div class="card" style="border-left:3px solid var(--pink)">
+      <div class="card-title">🔍 상품 찾기 & 시즌 캘린더</div>
+      <div style="font-size:13px;line-height:2;color:var(--text2)">
+        <strong style="color:var(--text)">상품 찾기 탭:</strong> 도매 엑셀을 업로드하면 시즌 적합도, 마진율, 플랫폼 매칭까지 자동 분석<br>
+        <strong style="color:var(--text)">시즌 캘린더 탭:</strong> 월별 제철 과일/채소 + 공산품 시즌 키워드 확인<br>
+        <strong style="color:var(--text)">바로 등록 탭:</strong> 복사해서 클로드 코드에 붙여넣으면 바로 등록 시작
+      </div>
+    </div>
+
+    <div class="card" style="background:var(--blue-bg);border:1px solid rgba(59,130,246,.3)">
+      <div class="card-title" style="color:var(--blue)">💡 꿀팁</div>
+      <div style="font-size:13px;line-height:2;color:var(--text2)">
+        • 마진율 <strong style="color:var(--green)">30% 이상</strong>이면 안정적, <strong style="color:var(--orange)">15% 미만</strong>이면 가격 조정 필요<br>
+        • 올웨이즈는 <strong>타임특가 20% + CPS</strong>가 광고비 무료라 가장 유리한 경우가 많아요<br>
+        • 토스쇼핑은 <strong>광고 집행 시 운영수수료 8% 면제</strong> → 수수료 2%만!<br>
+        • 옵션 원가가 다르면 반드시 옵션별로 입력해야 정확한 마진을 알 수 있어요<br>
+        • 저장된 상품은 엑셀로 다운받아서 스프레드시트에서 관리하세요
+      </div>
     </div>
   </div>
 </div>
@@ -1084,6 +1170,32 @@ function showToast(msg) {
 // ═══════════════════════════════════════
 
 let lastCalcResult = null;
+let optionCount = 0;
+
+function addOptionRow(name, cost) {
+  optionCount++;
+  const list = document.getElementById('mc-options-list');
+  const row = document.createElement('div');
+  row.id = 'mc-opt-' + optionCount;
+  row.style.cssText = 'display:flex;gap:8px;margin-bottom:6px;align-items:center';
+  row.innerHTML = `
+    <input type="text" placeholder="옵션명 (예: 3kg)" value="${name||''}" class="mc-opt-name" style="flex:1;padding:8px;border-radius:6px;border:1px solid var(--border2);background:var(--bg);color:var(--text);font-size:13px">
+    <input type="number" placeholder="원가" value="${cost||''}" class="mc-opt-cost" style="width:120px;padding:8px;border-radius:6px;border:1px solid var(--border2);background:var(--bg);color:var(--text);font-size:13px">
+    <button class="btn btn-sm btn-outline" style="color:var(--red);padding:6px 10px" onclick="this.parentElement.remove()">✕</button>`;
+  list.appendChild(row);
+}
+
+function getOptions() {
+  const names = document.querySelectorAll('.mc-opt-name');
+  const costs = document.querySelectorAll('.mc-opt-cost');
+  const options = [];
+  names.forEach((n, i) => {
+    const optName = n.value.trim();
+    const optCost = parseInt(costs[i]?.value) || 0;
+    if (optName && optCost > 0) options.push({ optionName: optName, cost: optCost });
+  });
+  return options;
+}
 
 // 서브탭 전환
 document.querySelectorAll('.mc-subtab').forEach(btn => {
@@ -1119,10 +1231,12 @@ function calcMarginUI(platform) {
 
   if (!name || cost <= 0) { showToast('상품명과 원가를 입력하세요'); return; }
 
+  const options = getOptions();
+
   fetch('/api/margin-calc', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name, cost, deliveryCost, isTaxable, category, roas, timeDiscount })
+    body: JSON.stringify({ name, cost, deliveryCost, isTaxable, category, roas, timeDiscount, options })
   })
   .then(r => r.json())
   .then(data => {
@@ -1184,12 +1298,59 @@ function renderMarginResult(data) {
   // 토스 전용
   renderTossSection(data);
 
+  // 옵션별 비교 테이블
+  renderOptionsTable(data);
+
   // 추천 (각각 분리)
   renderRecommendAlwayz(data);
   renderRecommendToss(data);
 
   // 저장 목록 갱신
   loadSavedProducts();
+}
+
+function renderOptionsTable(data) {
+  const container = document.getElementById('mc-options-compare');
+  if (!data.options || data.options.length === 0) {
+    container.style.display = 'none';
+    return;
+  }
+  container.style.display = 'block';
+
+  let html = `<div class="card" style="border:2px solid var(--blue);background:linear-gradient(135deg,var(--bg2),rgba(59,130,246,.03))">
+    <div class="card-title" style="font-size:17px">📦 옵션별 판매가 & 마진 비교</div>
+    <div class="card-desc">각 옵션(용량)별 판매가와 마진을 한눈에 비교하세요</div>
+    <div style="overflow-x:auto">
+    <table class="product-table" style="font-size:13px">
+      <thead><tr>
+        <th>옵션</th><th style="width:70px">원가</th>
+        <th style="width:85px">판매가(공격)</th><th style="width:80px">마진(공격)</th>
+        <th style="width:85px;background:rgba(59,130,246,.1)">판매가(기본)</th><th style="width:80px;background:rgba(59,130,246,.1)">마진(기본)</th>
+        <th style="width:85px">판매가(널널)</th><th style="width:80px">마진(널널)</th>
+        <th style="width:80px">토스 마진</th>
+      </tr></thead><tbody>`;
+
+  data.options.forEach(opt => {
+    const oa = opt.modes[0]; // 공격적
+    const om = opt.modes[1]; // 기본
+    const or_ = opt.modes[2]; // 널널
+    const mc = (r) => r >= 30 ? 'positive' : (r >= 15 ? 'warn' : (r >= 0 ? 'warn' : 'negative'));
+
+    html += `<tr>
+      <td style="font-weight:700">${escHTML(opt.optionName)}</td>
+      <td class="num">${formatNum(opt.cost)}원</td>
+      <td class="num">${formatNum(oa.price)}원</td>
+      <td class="num ${mc(oa.rate)}" style="font-weight:700">${formatNum(oa.profit)}원<br><span style="font-size:11px">${oa.rate}%</span></td>
+      <td class="num" style="background:rgba(59,130,246,.05)">${formatNum(om.price)}원</td>
+      <td class="num ${mc(om.rate)}" style="font-weight:700;background:rgba(59,130,246,.05)">${formatNum(om.profit)}원<br><span style="font-size:11px">${om.rate}%</span></td>
+      <td class="num">${formatNum(or_.price)}원</td>
+      <td class="num ${mc(or_.rate)}" style="font-weight:700">${formatNum(or_.profit)}원<br><span style="font-size:11px">${or_.rate}%</span></td>
+      <td class="num ${mc(om.tossRate)}" style="font-weight:700">${formatNum(om.tossProfit)}원<br><span style="font-size:11px">${om.tossRate}%</span></td>
+    </tr>`;
+  });
+
+  html += '</tbody></table></div></div>';
+  container.innerHTML = html;
 }
 
 function renderVisualBar(data) {
@@ -1432,6 +1593,7 @@ function resetMarginForm() {
   document.getElementById('mc-cost').value = '';
   document.getElementById('mc-delivery').value = '0';
   document.getElementById('mc-roas').value = '300';
+  document.getElementById('mc-options-list').innerHTML = '';
   document.getElementById('mc-result').style.display = 'none';
   lastCalcResult = null;
 }
@@ -1439,6 +1601,7 @@ function resetMarginForm() {
 // 상품 저장
 function saveMarginProduct() {
   if (!lastCalcResult) return;
+  const options = getOptions();
   const body = {
     name: lastCalcResult.name,
     cost: lastCalcResult.cost,
@@ -1447,6 +1610,7 @@ function saveMarginProduct() {
     category: lastCalcResult.category,
     roas: lastCalcResult.roas,
     timeDiscount: lastCalcResult.timeDiscount,
+    options: options.length > 0 ? options : undefined,
   };
   fetch('/api/margin-products', {
     method: 'POST',
@@ -1575,7 +1739,27 @@ function renderSavedList(products) {
         <div style="height:100%;width:${barWidth}%;background:var(--${mc});border-radius:3px;transition:width .3s"></div>
       </div>
 
-      <!-- 핵심 수치 그리드 -->
+      <!-- 옵션별 비교 (옵션 있을 때) -->
+      ${c.options && c.options.length > 0 ? `
+      <div style="overflow-x:auto;margin-bottom:8px">
+        <table class="product-table" style="font-size:12px;margin:0">
+          <thead><tr><th>옵션</th><th style="width:65px">원가</th><th style="width:75px">판매가</th><th style="width:75px">올웨이즈 마진</th><th style="width:75px">토스 마진</th></tr></thead>
+          <tbody>${c.options.map(opt => {
+            const om = opt.modes?.[1];
+            const omc = (om?.rate||0) >= 15 ? 'positive' : ((om?.rate||0) >= 0 ? 'warn' : 'negative');
+            const otc = (om?.tossRate||0) >= 15 ? 'positive' : ((om?.tossRate||0) >= 0 ? 'warn' : 'negative');
+            return `<tr>
+              <td style="font-weight:600">${escHTML(opt.optionName)}</td>
+              <td class="num">${formatNum(opt.cost)}원</td>
+              <td class="num">${formatNum(om?.price||0)}원</td>
+              <td class="num ${omc}" style="font-weight:700">${formatNum(om?.profit||0)}원 <span style="font-size:10px">${om?.rate||0}%</span></td>
+              <td class="num ${otc}" style="font-weight:700">${formatNum(om?.tossProfit||0)}원 <span style="font-size:10px">${om?.tossRate||0}%</span></td>
+            </tr>`;
+          }).join('')}</tbody>
+        </table>
+      </div>
+      ` : `
+      <!-- 핵심 수치 그리드 (옵션 없을 때) -->
       <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;font-size:12px">
         <div style="background:var(--bg3);padding:8px;border-radius:6px;text-align:center">
           <div style="color:var(--text3);margin-bottom:2px">원가</div>
@@ -1594,6 +1778,7 @@ function renderSavedList(products) {
           <div style="font-weight:700;color:${tossRate >= 0 ? 'var(--green)' : 'var(--red)'}">${formatNum(tossProfit)}원</div>
         </div>
       </div>
+      `}
 
       <!-- 전략 비교 미니 -->
       <div style="display:flex;gap:6px;margin-top:10px;font-size:11px">
@@ -1695,6 +1880,11 @@ function loadProductToCalc(id) {
   if (p.category) document.getElementById('mc-cat').value = p.category;
   document.getElementById('mc-roas').value = p.roas || 300;
   if (document.getElementById('mc-time-discount')) document.getElementById('mc-time-discount').value = p.timeDiscount || 20;
+  // 옵션 복원
+  document.getElementById('mc-options-list').innerHTML = '';
+  if (p.options && p.options.length > 0) {
+    p.options.forEach(opt => addOptionRow(opt.optionName, opt.cost));
+  }
   showToast('입력폼에 불러왔습니다. 수정 후 다시 계산하세요!');
   document.getElementById('mc-name').scrollIntoView({ behavior: 'smooth' });
 }
