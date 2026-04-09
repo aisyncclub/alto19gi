@@ -412,7 +412,10 @@ body{font-family:'Pretendard Variable',-apple-system,system-ui,sans-serif;backgr
     </div>
 
     <!-- 저장된 상품 목록 -->
-    <div class="section-title">📋 저장된 상품 목록</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:24px">
+      <div class="section-title" style="margin:0">📋 저장된 상품 목록</div>
+      <button class="btn btn-green btn-sm" onclick="exportMarginExcel()" id="btn-export-excel" style="display:none">📥 엑셀 다운로드</button>
+    </div>
     <div id="mc-saved-list">
       <div class="empty" style="padding:30px">
         <div class="empty-icon">📋</div>
@@ -1420,10 +1423,13 @@ function loadSavedProducts() {
     .then(r => r.json())
     .then(products => {
       const container = document.getElementById('mc-saved-list');
+      const exportBtn = document.getElementById('btn-export-excel');
       if (!products || products.length === 0) {
         container.innerHTML = '<div class="empty" style="padding:30px"><div class="empty-icon">📋</div><p>저장된 상품이 없습니다</p></div>';
+        if (exportBtn) exportBtn.style.display = 'none';
         return;
       }
+      if (exportBtn) exportBtn.style.display = 'inline-flex';
       let html = '<div class="card" style="padding:0;overflow-x:auto"><table class="product-table"><thead><tr>' +
         '<th>상품명</th><th style="width:70px">원가</th><th style="width:70px">판매가</th>' +
         '<th style="width:60px">과세</th><th style="width:80px">일반 마진</th>' +
@@ -1458,6 +1464,29 @@ function loadSavedProducts() {
 function deleteMarginProduct(id) {
   fetch('/api/margin-products/' + id, { method: 'DELETE' })
     .then(() => { showToast('삭제 완료'); loadSavedProducts(); });
+}
+
+// 엑셀 내보내기
+function exportMarginExcel() {
+  const btn = document.getElementById('btn-export-excel');
+  btn.textContent = '⏳ 다운로드 중...';
+  btn.disabled = true;
+  fetch('/api/margin-products/export')
+    .then(r => {
+      if (!r.ok) throw new Error('내보내기 실패');
+      return r.blob();
+    })
+    .then(blob => {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `마진계산_${new Date().toISOString().slice(0,10)}.xlsx`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('엑셀 다운로드 완료!');
+    })
+    .catch(e => showToast('엑셀 내보내기 실패: ' + e.message))
+    .finally(() => { btn.textContent = '📥 엑셀 다운로드'; btn.disabled = false; });
 }
 
 // 페이지 로드 시 저장된 상품 불러오기

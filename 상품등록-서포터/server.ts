@@ -364,6 +364,85 @@ const server = Bun.serve({
       return Response.json({ ok: true }, { headers: { "Access-Control-Allow-Origin": "*" } });
     }
 
+    // API: 마진 상품 엑셀 내보내기
+    if (url.pathname === "/api/margin-products/export" && req.method === "GET") {
+      try {
+        const products = loadMarginProducts();
+        if (products.length === 0) {
+          return Response.json({ error: "저장된 상품이 없습니다" }, { status: 404, headers: { "Access-Control-Allow-Origin": "*" } });
+        }
+
+        const rows = products.map((p: any) => {
+          const c = p.calc;
+          const m = c?.modes?.[1]; // 기본 모드
+          const agg = c?.modes?.[0]; // 공격적
+          const rel = c?.modes?.[2]; // 널널
+          return {
+            "상품명": p.name,
+            "원가": p.cost,
+            "택배비": p.deliveryCost,
+            "과세구분": p.isTaxable ? "과세" : "면세",
+            "카테고리": p.category || "",
+            "ROAS(%)": p.roas || 300,
+            "타임특가할인(%)": p.timeDiscount || 20,
+            // 공격적
+            "공격적_판매가": agg?.price || 0,
+            "공격적_일반마진": agg?.alwayz?.normal?.profit || 0,
+            "공격적_마진율(%)": agg?.alwayz?.normal?.rate || 0,
+            // 기본
+            "기본_판매가": m?.price || 0,
+            "기본_일반마진": m?.alwayz?.normal?.profit || 0,
+            "기본_마진율(%)": m?.alwayz?.normal?.rate || 0,
+            // 널널
+            "널널_판매가": rel?.price || 0,
+            "널널_일반마진": rel?.alwayz?.normal?.profit || 0,
+            "널널_마진율(%)": rel?.alwayz?.normal?.rate || 0,
+            // 올웨이즈 전략
+            "올웨이즈_타임특가+CPS_마진": m?.alwayz?.timeCPS?.profit || 0,
+            "올웨이즈_타임특가+CPS_율(%)": m?.alwayz?.timeCPS?.rate || 0,
+            "올웨이즈_타임특가+CPC_마진": m?.alwayz?.timeCPC?.profit || 0,
+            "올웨이즈_일반+CPC_마진": m?.alwayz?.cpc?.profit || 0,
+            // 토스
+            "토스_일반_마진": m?.toss?.normal?.profit || 0,
+            "토스_일반_율(%)": m?.toss?.normal?.rate || 0,
+            "토스_광고_마진": m?.toss?.ad?.profit || 0,
+            "토스_광고_율(%)": m?.toss?.ad?.rate || 0,
+            // 메타
+            "등록일": p.createdAt ? new Date(p.createdAt).toLocaleDateString("ko-KR") : "",
+          };
+        });
+
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.json_to_sheet(rows);
+
+        // 열 너비 설정
+        ws["!cols"] = [
+          { wch: 20 }, { wch: 10 }, { wch: 8 }, { wch: 8 }, { wch: 12 },
+          { wch: 10 }, { wch: 14 },
+          { wch: 12 }, { wch: 14 }, { wch: 12 },
+          { wch: 12 }, { wch: 14 }, { wch: 12 },
+          { wch: 12 }, { wch: 14 }, { wch: 12 },
+          { wch: 20 }, { wch: 20 }, { wch: 20 }, { wch: 18 },
+          { wch: 14 }, { wch: 14 }, { wch: 14 }, { wch: 14 },
+          { wch: 12 },
+        ];
+
+        XLSX.utils.book_append_sheet(wb, ws, "마진계산");
+        const buf = XLSX.write(wb, { type: "buffer", bookType: "xlsx" });
+
+        const filename = `마진계산_${new Date().toISOString().slice(0, 10)}.xlsx`;
+        return new Response(buf, {
+          headers: {
+            "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "Content-Disposition": `attachment; filename="${encodeURIComponent(filename)}"`,
+            "Access-Control-Allow-Origin": "*",
+          },
+        });
+      } catch (e: any) {
+        return Response.json({ error: e.message }, { status: 500, headers: { "Access-Control-Allow-Origin": "*" } });
+      }
+    }
+
     // API: 마진 상품 일괄 계산 (엑셀)
     if (url.pathname === "/api/margin-bulk" && req.method === "POST") {
       try {
@@ -398,7 +477,7 @@ const server = Bun.serve({
 
 console.log(`
 ╔══════════════════════════════════════════╗
-║  🚀 상품 서포터 v2 실행 중!              ║
+║  🚀 상품 서포터 v2.1 실행 중!            ║
 ║                                          ║
 ║  대시보드: http://localhost:${PORT}           ║
 ║                                          ║
