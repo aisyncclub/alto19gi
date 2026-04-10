@@ -1381,8 +1381,8 @@ function handleMarginExcelFile(file) {
   fetch('/api/margin-calc-excel', { method: 'POST', body: formData })
     .then(r => r.json())
     .then(data => {
-      // 드롭존 복원
-      dropzone.innerHTML = '<div style="font-size:28px;margin-bottom:8px">📄</div><div style="font-size:14px;font-weight:600">작성한 엑셀 파일을 여기에 드래그하거나 클릭</div><div style="font-size:12px;color:var(--text3);margin-top:4px">.xlsx 파일만 가능</div>';
+      // 드롭존 복원 (input 재생성 포함)
+      dropzone.innerHTML = '<div style="font-size:28px;margin-bottom:8px">📄</div><div style="font-size:14px;font-weight:600">작성한 엑셀 파일을 여기에 드래그하거나 클릭</div><div style="font-size:12px;color:var(--text3);margin-top:4px">.xlsx 파일만 가능</div><input type="file" id="mc-excel-input" accept=".xlsx,.xls" style="display:none" onchange="handleMarginExcelFile(this.files[0])">';
       dropzone.onclick = () => document.getElementById('mc-excel-input').click();
 
       if (data.error) { showToast(data.error); return; }
@@ -1390,7 +1390,7 @@ function handleMarginExcelFile(file) {
       renderExcelResults(data);
     })
     .catch(e => {
-      dropzone.innerHTML = '<div style="font-size:28px;margin-bottom:8px">📄</div><div style="font-size:14px;font-weight:600">작성한 엑셀 파일을 여기에 드래그하거나 클릭</div>';
+      dropzone.innerHTML = '<div style="font-size:28px;margin-bottom:8px">📄</div><div style="font-size:14px;font-weight:600">작성한 엑셀 파일을 여기에 드래그하거나 클릭</div><input type="file" id="mc-excel-input" accept=".xlsx,.xls" style="display:none" onchange="handleMarginExcelFile(this.files[0])">';
       dropzone.onclick = () => document.getElementById('mc-excel-input').click();
       showToast('오류: ' + e.message);
     });
@@ -1542,7 +1542,15 @@ function calcMarginUI(platform) {
   const name = document.getElementById('mc-name').value.trim();
   const cost = parseInt(document.getElementById('mc-cost').value) || 0;
   const deliveryCost = parseInt(document.getElementById('mc-delivery').value) || 0;
-  const roas = parseInt(document.getElementById('mc-roas').value) || 300;
+  // 토스 ROAS 입력값도 반영 (토스 탭에서 변경 시 동기화)
+  const tossRoasEl = document.getElementById('mc-toss-roas');
+  const alwayzRoasEl = document.getElementById('mc-roas');
+  if (currentPlatformMode === 'toss' && tossRoasEl) {
+    alwayzRoasEl.value = tossRoasEl.value;
+  } else if (tossRoasEl && alwayzRoasEl) {
+    tossRoasEl.value = alwayzRoasEl.value;
+  }
+  const roas = parseInt(alwayzRoasEl.value) || 300;
   const isTaxable = document.getElementById('mc-tax').value === 'true';
   const category = document.getElementById('mc-cat').value;
   const timeDiscount = parseInt(document.getElementById('mc-time-discount')?.value) || 20;

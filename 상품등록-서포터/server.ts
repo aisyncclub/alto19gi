@@ -174,11 +174,12 @@ function findCol(headers: string[], keywords: string[]): string | null {
 }
 
 function prettyPrice(raw: number): number {
+  if (raw < 500) return 900; // 최소 900원
   const r = Math.round(raw / 100) * 100;
   const last3 = r % 1000;
   if (last3 >= 750) return r - last3 + 900;
   if (last3 >= 250) return r - last3 + 800;
-  return r - last3 + 900 - 1000;
+  return Math.max(900, r - last3 + 900 - 1000);
 }
 
 function isFresh(name: string, cat: string): boolean {
@@ -364,7 +365,7 @@ function calcMarginFromExcel(buffer: ArrayBuffer) {
     const optName = optCol ? (row[optCol] + "").trim() : "";
     const delCost = delCol ? (parseInt((row[delCol] + "").replace(/[^0-9]/g, "")) || 0) : 0;
     const taxStr = taxCol ? (row[taxCol] + "").trim() : "";
-    const isTaxable = taxStr.includes("과세") || taxStr.toLowerCase() === "true";
+    const isTaxable = (taxStr.includes("과세") && !taxStr.includes("면세") && !taxStr.includes("비과세")) || taxStr.toLowerCase() === "true";
     const category = catCol ? (row[catCol] + "").trim() : "";
 
     if (!productMap.has(name)) {
@@ -596,8 +597,8 @@ const server = Bun.serve({
                 "널널_마진율(%)": or_?.rate || 0,
                 "토스_일반_마진": om?.tossProfit || 0,
                 "토스_마진율(%)": om?.tossRate || 0,
-                "올웨이즈_타임특가+CPS": m?.alwayz?.timeCPS?.profit || 0,
-                "올웨이즈_CPC": m?.alwayz?.cpc?.profit || 0,
+                "올웨이즈_타임특가+CPS": om?.profit || 0,
+                "올웨이즈_CPC": oa?.profit || 0,
                 "등록일": p.createdAt ? new Date(p.createdAt).toLocaleDateString("ko-KR") : "",
               });
             });
