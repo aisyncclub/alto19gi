@@ -319,147 +319,60 @@ body{font-family:'Pretendard Variable',-apple-system,system-ui,sans-serif;backgr
     <!-- 결과 영역 -->
     <div id="mc-result" style="display:none">
 
-      <!-- 플랫폼 서브탭 -->
-      <div id="mc-subtab-bar" style="display:flex;gap:4px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:4px;margin-bottom:16px">
-        <button class="mc-subtab" data-mctab="alwayz" style="flex:1;padding:12px 8px;border:none;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;border-radius:var(--r-sm);transition:all .15s;background:var(--blue-bg);color:var(--blue)">🟢 올웨이즈</button>
-        <button class="mc-subtab" data-mctab="toss" style="flex:1;padding:12px 8px;border:none;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;border-radius:var(--r-sm);transition:all .15s;background:none;color:var(--text3)">🟣 토스쇼핑</button>
-      </div>
-
-      <!-- ═══ 올웨이즈 섹션 ═══ -->
-      <div class="mc-platform-content active" id="mc-tab-alwayz">
-
-        <!-- 올웨이즈 전용 설정 -->
-        <div class="card" style="border:1px solid rgba(59,130,246,.3);background:linear-gradient(135deg,var(--bg2),rgba(59,130,246,.03))">
-          <div class="card-title" style="color:var(--blue)">⚙️ 올웨이즈 설정</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:8px">
-            <div>
-              <label style="font-size:12px;font-weight:600;display:block;margin-bottom:4px">카테고리 (수수료)</label>
-              <select id="mc-cat" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--border2);background:var(--bg3);color:var(--text);font-size:13px">
-                <option value="신선식품">신선식품 (5.8%)</option>
-                <option value="건강식품">건강식품 (7.6%)</option>
-                <option value="가공식품">가공식품 (10.6%)</option>
-                <option value="생활소품">생활소품 (7.8%)</option>
-                <option value="뷰티">뷰티 (9.6%)</option>
-                <option value="패션">패션 (10.5%)</option>
-                <option value="가구/홈데코">가구/홈데코 (10.8%)</option>
-                <option value="가전/디지털">가전/디지털 (5.8%)</option>
-                <option value="생활용품">생활용품 (10.8%)</option>
-              </select>
-            </div>
-            <div>
-              <label style="font-size:12px;font-weight:600;display:block;margin-bottom:4px">ROAS (%)</label>
-              <input type="number" id="mc-roas" value="300" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--border2);background:var(--bg3);color:var(--text);font-size:13px">
-            </div>
-            <div>
-              <label style="font-size:12px;font-weight:600;display:block;margin-bottom:4px">타임특가 할인율 (%)</label>
-              <input type="number" id="mc-time-discount" value="20" min="10" max="50" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--border2);background:var(--bg3);color:var(--text);font-size:13px">
-            </div>
+      <!-- 설정 바 -->
+      <div class="card" style="padding:16px;border:1px solid var(--border2)">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;align-items:end">
+          <div>
+            <label style="font-size:11px;font-weight:600;display:block;margin-bottom:3px;color:var(--text3)">카테고리</label>
+            <select id="mc-cat" style="width:100%;padding:8px;border-radius:6px;border:1px solid var(--border2);background:var(--bg3);color:var(--text);font-size:12px">
+              <option value="신선식품">신선식품 (5.8%)</option>
+              <option value="건강식품">건강식품 (7.6%)</option>
+              <option value="가공식품">가공식품 (10.6%)</option>
+              <option value="생활소품">생활소품 (7.8%)</option>
+              <option value="뷰티">뷰티 (9.6%)</option>
+              <option value="패션">패션 (10.5%)</option>
+              <option value="생활용품">생활용품 (10.8%)</option>
+            </select>
           </div>
-          <button class="btn btn-primary btn-sm" onclick="calcMarginUI()" style="margin-top:12px">🔄 다시 계산</button>
-        </div>
-
-        <!-- 올웨이즈 마진 구조 시각화 -->
-        <div class="card" style="background:linear-gradient(135deg,#0f0f12 0%,#1a1a2e 100%)">
-          <div class="card-title" style="font-size:18px">🧮 <span id="mc-result-name">상품명</span> — 올웨이즈 마진 구조</div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 16px">
-            <span class="season-badge" style="background:var(--blue-bg);color:var(--blue)" id="mc-badge-cost">원가 0원</span>
-            <span class="season-badge" style="background:var(--purple-bg);color:var(--purple)" id="mc-badge-delivery">택배비 0원</span>
-            <span class="season-badge" id="mc-badge-tax">면세</span>
-            <span class="season-badge" style="background:var(--orange-bg);color:var(--orange)" id="mc-badge-roas">ROAS 300%</span>
+          <div>
+            <label style="font-size:11px;font-weight:600;display:block;margin-bottom:3px;color:var(--text3)">ROAS (%)</label>
+            <input type="number" id="mc-roas" value="300" style="width:100%;padding:8px;border-radius:6px;border:1px solid var(--border2);background:var(--bg3);color:var(--text);font-size:12px">
           </div>
-          <div id="mc-visual"></div>
-        </div>
-
-        <!-- 옵션별 비교 -->
-        <div id="mc-options-compare" style="display:none"></div>
-
-        <!-- 전략A: 타임특가 -->
-        <div class="card" style="border-left:3px solid var(--green)">
-          <div class="card-title">🔥 전략A: 타임특가 + CPS/CPC</div>
-          <div class="card-desc">타임특가 할인 → CPS 광고비 무료! 빠른 판매량 확보에 최적</div>
-          <div id="mc-stratA"></div>
-        </div>
-
-        <!-- 전략B: 일반가 -->
-        <div class="card" style="border-left:3px solid var(--blue)">
-          <div class="card-title">📦 전략B: 일반가 + CPC/CPS</div>
-          <div class="card-desc">할인 없이 광고 판매. 마진 여유 적을 때</div>
-          <div id="mc-stratB"></div>
-        </div>
-
-        <!-- 전략C: CPM -->
-        <div class="card" style="border-left:3px solid var(--purple)">
-          <div class="card-title">📢 전략C: 일반가 + CPM</div>
-          <div class="card-desc">노출 광고로 인지도 확보. 신규 런칭에 적합</div>
-          <div id="mc-stratC"></div>
-        </div>
-
-        <!-- 올웨이즈 추천 -->
-        <div class="card" style="background:var(--blue-bg);border:1px solid rgba(59,130,246,.3)">
-          <div class="card-title" style="color:var(--blue)">💡 올웨이즈 추천 전략</div>
-          <div id="mc-recommend-alwayz" style="font-size:14px;line-height:1.8"></div>
+          <div>
+            <label style="font-size:11px;font-weight:600;display:block;margin-bottom:3px;color:var(--text3)">타임특가 할인 (%)</label>
+            <input type="number" id="mc-time-discount" value="20" min="10" max="50" style="width:100%;padding:8px;border-radius:6px;border:1px solid var(--border2);background:var(--bg3);color:var(--text);font-size:12px">
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="calcMarginUI()" style="height:36px">🔄 다시 계산</button>
         </div>
       </div>
 
-      <!-- ═══ 토스쇼핑 섹션 ═══ -->
-      <div class="mc-platform-content" id="mc-tab-toss" style="display:none">
-
-        <!-- 토스 전용 설정 -->
-        <div class="card" style="border:1px solid rgba(236,72,153,.3);background:linear-gradient(135deg,var(--bg2),rgba(236,72,153,.03))">
-          <div class="card-title" style="color:var(--pink)">⚙️ 토스쇼핑 설정</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:8px">
-            <div>
-              <label style="font-size:12px;font-weight:600;display:block;margin-bottom:4px">ROAS (%)</label>
-              <input type="number" id="mc-toss-roas" value="300" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--border2);background:var(--bg3);color:var(--text);font-size:13px">
-            </div>
-            <div>
-              <label style="font-size:12px;font-weight:600;display:block;margin-bottom:4px">광고 집행</label>
-              <select id="mc-toss-ad" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--border2);background:var(--bg3);color:var(--text);font-size:13px">
-                <option value="both">둘 다 비교 (광고 O / 광고 X)</option>
-                <option value="yes">광고 집행 (운영수수료 0%)</option>
-                <option value="no">광고 미집행 (운영수수료 8%)</option>
-              </select>
-            </div>
-          </div>
-          <div style="margin-top:8px;padding:8px 12px;background:var(--pink-bg);border-radius:6px;font-size:12px;color:var(--pink)">
-            💡 토스쇼핑: 결제수수료 2% (항상) + 운영수수료 8% (광고 미집행 시) → 광고 집행하면 운영수수료 0%!
-          </div>
-          <button class="btn btn-primary btn-sm" onclick="calcMarginUI()" style="margin-top:12px">🔄 다시 계산</button>
-        </div>
-
-        <!-- 토스 마진 구조 시각화 -->
-        <div class="card" style="background:linear-gradient(135deg,#0f0f12 0%,#1f1028 100%)">
-          <div class="card-title" style="font-size:18px">🧮 <span id="mc-toss-result-name">상품명</span> — 토스쇼핑 마진 구조</div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 16px">
-            <span class="season-badge" style="background:var(--blue-bg);color:var(--blue)" id="mc-toss-badge-cost">원가 0원</span>
-            <span class="season-badge" style="background:var(--purple-bg);color:var(--purple)" id="mc-toss-badge-delivery">택배비 0원</span>
-            <span class="season-badge" id="mc-toss-badge-tax">면세</span>
-          </div>
-          <div id="mc-toss-visual"></div>
-        </div>
-
-        <!-- 토스 일반 판매 vs 광고 판매 -->
-        <div class="card" style="border-left:3px solid var(--pink)">
-          <div class="card-title">📊 토스쇼핑 마진 비교</div>
-          <div class="card-desc">일반 판매 (수수료 10%) vs 광고 판매 (수수료 2%, 광고비 별도)</div>
-          <div id="mc-toss-table"></div>
-        </div>
-
-        <!-- ROAS별 비교 -->
-        <div class="card" style="border-left:3px solid var(--orange)">
-          <div class="card-title">📈 ROAS별 광고 마진 비교</div>
-          <div class="card-desc">ROAS에 따라 광고 판매 순이익이 이렇게 달라집니다</div>
-          <div id="mc-toss-roas-table"></div>
-        </div>
-
-        <!-- 토스 추천 -->
-        <div class="card" style="background:var(--pink-bg);border:1px solid rgba(236,72,153,.3)">
-          <div class="card-title" style="color:var(--pink)">💡 토스쇼핑 추천</div>
-          <div id="mc-recommend-toss" style="font-size:14px;line-height:1.8"></div>
+      <!-- 상품 요약 -->
+      <div class="card" style="background:linear-gradient(135deg,#0f0f12,#1a1a2e);padding:20px">
+        <div style="font-size:20px;font-weight:800;margin-bottom:8px" id="mc-result-name">상품명</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <span class="season-badge" style="background:var(--blue-bg);color:var(--blue)" id="mc-badge-cost">원가 0원</span>
+          <span class="season-badge" style="background:var(--purple-bg);color:var(--purple)" id="mc-badge-delivery">택배비 0원</span>
+          <span class="season-badge" id="mc-badge-tax">면세</span>
+          <span class="season-badge" style="background:var(--orange-bg);color:var(--orange)" id="mc-badge-roas">ROAS 300%</span>
         </div>
       </div>
 
-      <!-- 저장 버튼 (공통) -->
+      <!-- 옵션별 비교 -->
+      <div id="mc-options-compare" style="display:none"></div>
+
+      <!-- ★ 통합 비교 테이블 — 핵심 ★ -->
+      <div id="mc-unified-table"></div>
+
+      <!-- ROAS별 비교 -->
+      <div id="mc-roas-compare"></div>
+
+      <!-- 추천 -->
+      <div class="card" style="background:linear-gradient(135deg,var(--green-bg),var(--blue-bg));border:1px solid rgba(16,185,129,.2)">
+        <div class="card-title">💡 추천</div>
+        <div id="mc-recommend-unified" style="font-size:14px;line-height:1.8"></div>
+      </div>
+
+      <!-- 저장 버튼 -->
       <div style="display:flex;gap:8px;margin:16px 0">
         <button class="btn btn-green" onclick="saveMarginProduct()" style="flex:1">💾 상품 저장</button>
       </div>
@@ -1542,15 +1455,7 @@ function calcMarginUI(platform) {
   const name = document.getElementById('mc-name').value.trim();
   const cost = parseInt(document.getElementById('mc-cost').value) || 0;
   const deliveryCost = parseInt(document.getElementById('mc-delivery').value) || 0;
-  // 토스 ROAS 입력값도 반영 (토스 탭에서 변경 시 동기화)
-  const tossRoasEl = document.getElementById('mc-toss-roas');
-  const alwayzRoasEl = document.getElementById('mc-roas');
-  if (currentPlatformMode === 'toss' && tossRoasEl) {
-    alwayzRoasEl.value = tossRoasEl.value;
-  } else if (tossRoasEl && alwayzRoasEl) {
-    tossRoasEl.value = alwayzRoasEl.value;
-  }
-  const roas = parseInt(alwayzRoasEl.value) || 300;
+  const roas = parseInt(document.getElementById('mc-roas').value) || 300;
   const isTaxable = document.getElementById('mc-tax').value === 'true';
   const category = document.getElementById('mc-cat').value;
   const timeDiscount = parseInt(document.getElementById('mc-time-discount')?.value) || 20;
@@ -1568,7 +1473,6 @@ function calcMarginUI(platform) {
   .then(data => {
     lastCalcResult = data;
     renderMarginResult(data);
-    applyPlatformMode(currentPlatformMode);
     document.getElementById('mc-result').style.display = 'block';
     document.getElementById('mc-result').scrollIntoView({ behavior: 'smooth' });
   })
@@ -1604,7 +1508,6 @@ function applyPlatformMode(mode) {
 }
 
 function renderMarginResult(data) {
-  const d = data.modes[1]; // 기본 모드
   const taxLabel = data.isTaxable ? '과세' : '면세';
   const taxBg = data.isTaxable ? 'background:var(--red-bg);color:var(--red)' : 'background:var(--green-bg);color:var(--green)';
 
@@ -1615,22 +1518,14 @@ function renderMarginResult(data) {
   document.getElementById('mc-badge-tax').style.cssText = taxBg;
   document.getElementById('mc-badge-roas').textContent = 'ROAS ' + data.roas + '%';
 
-  // 시각화: 판매가 구성 바 차트
-  renderVisualBar(data);
-
-  // 전략별 결과
-  renderStrategies(data);
-
-  // 토스 전용
-  renderTossSection(data);
-
-  // 옵션별 비교 테이블
+  // 옵션별 비교
   renderOptionsTable(data);
-
-  // 추천 (각각 분리)
-  renderRecommendAlwayz(data);
-  renderRecommendToss(data);
-
+  // 통합 비교 테이블
+  renderUnifiedTable(data);
+  // ROAS별 비교
+  renderRoasCompare(data);
+  // 추천
+  renderUnifiedRecommend(data);
   // 저장 목록 갱신
   loadSavedProducts();
 }
@@ -1679,6 +1574,145 @@ function renderOptionsTable(data) {
   container.innerHTML = html;
 }
 
+function renderUnifiedTable(data) {
+  const container = document.getElementById('mc-unified-table');
+  let html = '';
+
+  data.modes.forEach(m => {
+    const isDefault = m.mode === '기본';
+    const border = isDefault ? 'border:2px solid var(--blue);' : '';
+
+    // 모든 광고 방식의 마진을 한 테이블에
+    const rows = [
+      { label: '🟢 올웨이즈 광고 없음', profit: m.alwayz.normal.profit, rate: m.alwayz.normal.rate, adCost: '-', tag: '' },
+      { label: '🟢 올웨이즈 CPS', profit: m.alwayz.cps.profit, rate: m.alwayz.cps.rate, adCost: formatNum(m.alwayz.cps.adCost)+'원', tag: '' },
+      { label: '🟢 올웨이즈 CPC', profit: m.alwayz.cpc.profit, rate: m.alwayz.cpc.rate, adCost: formatNum(m.alwayz.cpc.adCost)+'원', tag: '' },
+      { label: '🟢 올웨이즈 CPM', profit: m.alwayz.cpm.profit, rate: m.alwayz.cpm.rate, adCost: formatNum(m.alwayz.cpm.adCost)+'원', tag: '' },
+      { label: '🔥 타임특가 + CPS', profit: m.alwayz.timeCPS.profit, rate: m.alwayz.timeCPS.rate, adCost: m.alwayz.timeCPS.cpsFree ? '무료!' : formatNum(m.alwayz.timeCPS.adCost)+'원', tag: m.alwayz.timeCPS.cpsFree ? '🆓' : '' },
+      { label: '🔥 타임특가 + CPC', profit: m.alwayz.timeCPC.profit, rate: m.alwayz.timeCPC.rate, adCost: formatNum(m.alwayz.timeCPC.adCost)+'원', tag: '' },
+      { label: '🟣 토스 광고 없음', profit: m.toss.normal.profit, rate: m.toss.normal.rate, adCost: '-', tag: '' },
+      { label: '🟣 토스 광고', profit: m.toss.ad.profit, rate: m.toss.ad.rate, adCost: formatNum(m.toss.ad.adCost)+'원', tag: '' },
+    ];
+
+    // 최고 마진 찾기
+    const best = rows.reduce((max, r) => r.profit > max.profit ? r : max, rows[0]);
+
+    html += `<div class="card" style="padding:0;overflow:hidden;${border}">
+      <div style="padding:14px 16px;background:var(--bg3);display:flex;justify-content:space-between;align-items:center">
+        <span style="font-weight:700;font-size:15px">${m.mode} (x${m.mult}) → 판매가 <strong>${formatNum(m.price)}원</strong></span>
+        ${isDefault ? '<span class="season-badge" style="background:var(--blue-bg);color:var(--blue)">기본</span>' : ''}
+      </div>
+      <div style="overflow-x:auto">
+      <table class="product-table" style="font-size:13px;margin:0">
+        <thead><tr>
+          <th style="width:180px">광고 방식</th>
+          <th style="width:90px">광고비</th>
+          <th style="width:100px">순이익</th>
+          <th style="width:70px">마진율</th>
+          <th style="width:50px"></th>
+        </tr></thead><tbody>`;
+
+    rows.forEach(r => {
+      const pc = r.rate >= 15 ? 'positive' : (r.rate >= 0 ? 'warn' : 'negative');
+      const isBest = r === best && r.profit > 0;
+      const bg = isBest ? 'background:rgba(16,185,129,.08);' : '';
+      html += `<tr style="${bg}">
+        <td style="font-weight:600">${r.label} ${r.tag}</td>
+        <td class="num" style="color:${r.adCost === '-' ? 'var(--text3)' : (r.adCost === '무료!' ? 'var(--green)' : 'var(--text)')}">${r.adCost}</td>
+        <td class="num ${pc}" style="font-weight:700;font-size:14px">${formatNum(r.profit)}원</td>
+        <td class="num ${pc}" style="font-weight:700">${r.rate}%</td>
+        <td>${isBest ? '<span style="color:var(--green);font-weight:700">최고</span>' : ''}</td>
+      </tr>`;
+    });
+
+    html += '</tbody></table></div></div>';
+  });
+
+  container.innerHTML = html;
+}
+
+function renderRoasCompare(data) {
+  const container = document.getElementById('mc-roas-compare');
+  const m = data.modes[1]; // 기본 모드
+  const roasValues = [200, 300, 500, 1000];
+
+  let rows = '';
+  roasValues.forEach(r => {
+    // 올웨이즈 CPC
+    const awAdCost = Math.round(m.price / (r / 100));
+    const awProfit = m.price - data.cost - data.deliveryCost - m.commission - (data.isTaxable ? m.vat : 0) - awAdCost;
+    const awRate = +((awProfit / m.price) * 100).toFixed(1);
+    // 올웨이즈 타임특가+CPS (CPS 무료 if discount>=20)
+    const timePrice = m.alwayz.timeCPS.price;
+    const timeComm = Math.round(timePrice * data.commRateVAT);
+    const timeVat = data.isTaxable ? Math.round(timePrice / 11) : 0;
+    const timeCPSProfit = timePrice - data.cost - data.deliveryCost - timeComm - timeVat;
+    const timeCPSRate = +((timeCPSProfit / timePrice) * 100).toFixed(1);
+    // 토스 광고
+    const tossAdComm = Math.round(m.price * 0.02);
+    const tossVat = data.isTaxable ? Math.round(m.price / 11) : 0;
+    const tossAdCost = Math.round(m.price / (r / 100));
+    const tossProfit = m.price - data.cost - data.deliveryCost - tossAdComm - tossVat - tossAdCost;
+    const tossRate = +((tossProfit / m.price) * 100).toFixed(1);
+
+    const isDefault = r === data.roas;
+    const bg = isDefault ? 'background:var(--bg3);' : '';
+    const awPc = awRate >= 0 ? (awRate >= 15 ? 'positive' : 'warn') : 'negative';
+    const tsPc = tossRate >= 0 ? (tossRate >= 15 ? 'positive' : 'warn') : 'negative';
+    const tcPc = timeCPSRate >= 0 ? (timeCPSRate >= 15 ? 'positive' : 'warn') : 'negative';
+
+    rows += `<tr style="${bg}">
+      <td style="font-weight:700">${r}%${isDefault ? ' ←현재' : ''}</td>
+      <td class="num ${awPc}" style="font-weight:600">${formatNum(awProfit)}원 <span style="font-size:10px">${awRate}%</span></td>
+      <td class="num ${tcPc}" style="font-weight:600">${formatNum(timeCPSProfit)}원 <span style="font-size:10px">${timeCPSRate}%</span></td>
+      <td class="num ${tsPc}" style="font-weight:600">${formatNum(tossProfit)}원 <span style="font-size:10px">${tossRate}%</span></td>
+    </tr>`;
+  });
+
+  container.innerHTML = `<div class="card">
+    <div class="card-title">📈 ROAS별 마진 비교 (기본 x1.8 기준)</div>
+    <div class="card-desc">ROAS가 올라가면 광고 효율이 좋아져서 마진이 늘어나요</div>
+    <div style="overflow-x:auto">
+    <table class="product-table" style="font-size:13px">
+      <thead><tr>
+        <th style="width:90px">ROAS</th>
+        <th>🟢 올웨이즈 CPC</th>
+        <th>🔥 타임특가+CPS</th>
+        <th>🟣 토스 광고</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table></div>
+    <div style="margin-top:8px;font-size:11px;color:var(--text3)">* 타임특가+CPS는 ROAS와 무관 (CPS 광고비 무료이므로 항상 동일)</div>
+  </div>`;
+}
+
+function renderUnifiedRecommend(data) {
+  const m = data.modes[1];
+  const all = [
+    { name: '올웨이즈 광고없음', profit: m.alwayz.normal.profit },
+    { name: '타임특가+CPS', profit: m.alwayz.timeCPS.profit },
+    { name: '올웨이즈 CPC', profit: m.alwayz.cpc.profit },
+    { name: '토스 광고없음', profit: m.toss.normal.profit },
+    { name: '토스 광고', profit: m.toss.ad.profit },
+  ];
+  const best = all.reduce((a, b) => a.profit > b.profit ? a : b);
+  const el = document.getElementById('mc-recommend-unified');
+
+  if (best.profit <= 0) {
+    el.innerHTML = `<strong style="color:var(--red)">⚠️ 현재 설정으로는 모든 방식에서 마진이 부족합니다.</strong><br>가격을 올리거나(널널 모드) 원가를 낮춰보세요.`;
+    return;
+  }
+
+  let tip = '';
+  if (best.name === '타임특가+CPS') tip = '타임특가 할인해도 CPS 광고비가 무료라서 가장 유리해요! 빠른 판매량 확보에 최적.';
+  else if (best.name.includes('광고없음')) tip = '광고 없이도 마진이 넉넉해요. 자연 유입으로 시작해보세요.';
+  else if (best.name.includes('토스')) tip = '토스쇼핑은 광고 집행 시 운영수수료 8%가 면제돼요.';
+  else tip = '광고 효율(ROAS)이 높을수록 이 방식이 유리해져요.';
+
+  el.innerHTML = `<strong style="color:var(--green)">최고 마진: ${best.name} → ${formatNum(best.profit)}원</strong><br>${tip}`;
+}
+
+// 아래는 호환성을 위해 남겨둔 빈 함수
 function renderVisualBar(data) {
   const container = document.getElementById('mc-visual');
   let html = '';
