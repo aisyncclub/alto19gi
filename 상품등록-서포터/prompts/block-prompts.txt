@@ -1,0 +1,85 @@
+# Block Prompt Templates
+# 에이전트가 각 블록 이미지 생성 시 extra_context로 주입하는 힌트
+
+[히어로]
+This is the HERO section - the first thing customers see.
+Include: product hero image, main headline, sub-headline.
+Make it appetite-inducing with premium food photography style (sizzle shot).
+DO NOT include price unless explicitly in the copy text.
+
+[셀링포인트]
+This is the KEY SELLING POINTS section.
+Include: 3-5 selling points with icons and short descriptions.
+Layout: grid or card-based layout, each point clearly separated.
+Icons should be simple and modern.
+
+[시즐컷]
+This is the FOOD VISUAL GALLERY section.
+Include: multiple appetizing food photos showing different angles.
+Focus on texture, steam, freshness, cross-sections.
+Layout: collage or grid of food images.
+
+[소셜프루프]
+This is the SOCIAL PROOF section.
+Include: review highlights, star ratings, purchase count, repurchase rate.
+Layout: review cards with photos, statistics in large numbers.
+
+[원재료]
+This is the INGREDIENTS/ORIGIN STORY section.
+Include: origin location, farm/producer photos, ingredient close-ups.
+Show the journey from farm to table.
+
+[제조공정]
+This is the MANUFACTURING PROCESS section.
+Include: production facility, HACCP/certification badges, hygiene standards.
+Step-by-step visual flow of production process.
+
+[맛설명]
+This is the TASTE/TEXTURE DESCRIPTION section.
+Include: taste profile visualization, texture descriptions.
+Use sensory language visualized: sweetness scale, flavor wheel, etc.
+
+[조리법]
+This is the RECIPE/COOKING GUIDE section.
+Include: step-by-step cooking instructions with photos.
+Show microwave/air-fryer/stove options with time/temperature.
+
+[영양정보]
+This is the NUTRITION HIGHLIGHT section.
+Include: key nutrition facts in marketing-friendly format.
+Visualize: protein/calories/etc as infographic, compare to daily recommended.
+
+[보관해동]
+This is the STORAGE/THAWING GUIDE section.
+Include: storage temperature, duration, thawing methods.
+Visual icons for freezer/fridge/room temperature.
+
+[브랜드스토리]
+This is the BRAND/PRODUCER STORY section.
+Include: founder/producer photo, brand philosophy, founding story.
+Warm, personal, trust-building tone.
+
+[FAQ]
+This is the FAQ section.
+Include: 4-6 common questions and answers.
+Clean, accordion-style or card layout.
+
+[가격구성]
+This is the PRICING/BUNDLE section.
+Include: single vs set options, per-unit price comparison.
+Highlight "most popular" option with badge.
+
+[배송]
+This is the SHIPPING INFO section.
+Include: cold-chain/ice-pack packaging, delivery timeline.
+Icons for refrigerated/frozen/room-temp shipping.
+
+[CTA]
+This is the CALL-TO-ACTION section.
+Include: urgent/limited offer messaging, large purchase button.
+Create urgency: limited stock, time-limited discount, first-purchase coupon.
+
+[법적표기]
+This is the LEGAL/COMPLIANCE section.
+Include: nutrition facts table, allergens, origin, expiration info.
+Clean, table-based layout matching platform standards.

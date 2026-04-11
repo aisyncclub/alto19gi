@@ -183,6 +183,7 @@ body{font-family:'Pretendard Variable',-apple-system,system-ui,sans-serif;backgr
     <button class="tab main-tab" data-tab="margin">💰 마진 계산기</button>
     <button class="tab main-tab" data-tab="season">📅 시즌 캘린더</button>
     <button class="tab main-tab" data-tab="register">📦 바로 등록</button>
+    <button class="tab main-tab" data-tab="detail">🖼️ 상세페이지</button>
     <button class="tab main-tab" data-tab="guide">📖 사용법</button>
   </div>
 
@@ -488,6 +489,97 @@ CS 리스크 낮은 것 위주로.
 원가 5,000원 이하, 묶음 세트 가능한 것.
 올웨이즈+토스 둘 다 적합한 것.
 <button class="btn btn-copy btn-sm copy-btn" onclick="copyText('prompt-domemae')">복사</button></div>
+    </div>
+  </div>
+
+  <!-- TAB 5: 상세페이지 생성 -->
+  <div class="tab-content" id="tab-detail">
+    <div class="card" style="border-left:4px solid var(--purple)">
+      <div class="card-title">🖼️ AI 상세페이지 이미지 생성</div>
+      <div class="card-desc">Google Gemini AI로 상품 상세페이지 이미지를 자동 생성합니다. 올웨이즈·토스쇼핑·쿠팡·스마트스토어 전용 사이즈로 최적화됩니다.</div>
+    </div>
+
+    <!-- API 키 설정 -->
+    <div class="card" id="dp-apikey-card">
+      <div class="card-title">🔑 Gemini API 키</div>
+      <div class="card-desc">Google AI Studio에서 발급한 API 키를 입력하세요. 한 번 저장하면 다음부터 자동으로 불러옵니다.</div>
+      <div style="display:flex;gap:8px">
+        <input id="dp-apikey" type="password" placeholder="AIza..." style="flex:1;padding:10px 14px;background:var(--bg);border:1px solid var(--border2);border-radius:var(--r-sm);color:var(--text);font-family:inherit;font-size:13px">
+        <button class="btn btn-outline btn-sm" onclick="dpSaveApiKey()">저장</button>
+        <button class="btn btn-outline btn-sm" onclick="document.getElementById('dp-apikey').type = document.getElementById('dp-apikey').type === 'password' ? 'text' : 'password'">보기</button>
+      </div>
+    </div>
+
+    <!-- 생성 옵션 -->
+    <div class="card">
+      <div class="card-title">⚙️ 생성 옵션</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+        <div>
+          <label style="display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:6px">상품명 *</label>
+          <input id="dp-product" type="text" placeholder="예) 성주 참외 3kg" style="width:100%;padding:10px 14px;background:var(--bg);border:1px solid var(--border2);border-radius:var(--r-sm);color:var(--text);font-family:inherit;font-size:13px">
+        </div>
+        <div>
+          <label style="display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:6px">플랫폼</label>
+          <select id="dp-platform" style="width:100%;padding:10px 14px;background:var(--bg);border:1px solid var(--border2);border-radius:var(--r-sm);color:var(--text);font-family:inherit;font-size:13px">
+            <option value="alwayz">올웨이즈 (720px)</option>
+            <option value="toss">토스쇼핑 (860px)</option>
+            <option value="naver">네이버 스마트스토어 (860px)</option>
+            <option value="coupang">쿠팡 (780px)</option>
+            <option value="universal">범용 (860px)</option>
+          </select>
+        </div>
+        <div>
+          <label style="display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:6px">스타일</label>
+          <select id="dp-style" style="width:100%;padding:10px 14px;background:var(--bg);border:1px solid var(--border2);border-radius:var(--r-sm);color:var(--text);font-family:inherit;font-size:13px">
+            <option value="clean">클린 — 미니멀 흰 배경</option>
+            <option value="natural">내추럴 — 건강·크래프트 느낌</option>
+            <option value="vivid">비비드 — 강렬한 컬러 프로모션</option>
+            <option value="premium">프리미엄 — 고급 다크톤</option>
+          </select>
+        </div>
+        <div>
+          <label style="display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:6px">생성 모드</label>
+          <select id="dp-mode" style="width:100%;padding:10px 14px;background:var(--bg);border:1px solid var(--border2);border-radius:var(--r-sm);color:var(--text);font-family:inherit;font-size:13px">
+            <option value="lite">Lite — 5블록 (빠름, 토큰 절약)</option>
+            <option value="standard" selected>Standard — 7블록 (권장)</option>
+            <option value="full">Full — 9블록+ (상세, 시간 소요)</option>
+            <option value="prompt">Prompt Only — API 없이 프롬프트만</option>
+          </select>
+        </div>
+        <div>
+          <label style="display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:6px">이미지 품질</label>
+          <select id="dp-quality" style="width:100%;padding:10px 14px;background:var(--bg);border:1px solid var(--border2);border-radius:var(--r-sm);color:var(--text);font-family:inherit;font-size:13px">
+            <option value="">플랫폼 기본값 (권장)</option>
+            <option value="95">최고화질 (95) — 파일 큼, 선명도 최상</option>
+            <option value="90">고화질 (90) — 쿠팡·프리미엄 상품 추천</option>
+            <option value="85">표준 (85) — 올웨이즈·토스 기본값</option>
+            <option value="80">중간 (80) — 파일 크기 줄이기</option>
+            <option value="75">낮음 (75) — 빠른 업로드 필요 시</option>
+            <option value="70">최소 (70) — 용량 최소화</option>
+          </select>
+          <div style="font-size:11px;color:var(--text3);margin-top:4px">숫자가 높을수록 선명하지만 파일 크기가 커집니다</div>
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="dpGenerate()" id="dp-generate-btn" style="width:100%;justify-content:center;padding:14px">
+        🚀 상세페이지 생성 시작
+      </button>
+    </div>
+
+    <!-- 상태/로그 -->
+    <div class="card" id="dp-status-card" style="display:none">
+      <div class="card-title">⏳ 생성 중...</div>
+      <div id="dp-status-log" style="font-size:12px;color:var(--text2);background:var(--bg);padding:12px;border-radius:var(--r-sm);font-family:monospace;white-space:pre-wrap;max-height:200px;overflow-y:auto"></div>
+    </div>
+
+    <!-- 결과 -->
+    <div id="dp-result" style="display:none">
+      <div class="section-title" style="margin-top:8px">✅ 생성 완료</div>
+      <div class="card">
+        <div style="display:flex;gap:8px;margin-bottom:16px">
+          <a id="dp-html-link" href="#" target="_blank" class="btn btn-primary btn-sm">🌐 HTML 미리보기</a>
+        </div>
+        <div id="dp-image-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px"></div>
+      </div>
     </div>
   </div>
 
@@ -2297,6 +2389,85 @@ try {
 
 // 페이지 로드 시 저장된 상품 불러오기
 setTimeout(loadSavedProducts, 500);
+
+// ── 상세페이지 생성 ──
+(async function dpInit() {
+  try {
+    const res = await fetch('/api/detail-page/apikey');
+    const { apiKey } = await res.json();
+    if (apiKey) document.getElementById('dp-apikey').value = apiKey;
+  } catch(e) {}
+})();
+
+async function dpSaveApiKey() {
+  const key = document.getElementById('dp-apikey').value.trim();
+  if (!key) { alert('API 키를 입력하세요.'); return; }
+  await fetch('/api/detail-page/apikey', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ apiKey: key })
+  });
+  alert('저장되었습니다.');
+}
+
+async function dpGenerate() {
+  const product = document.getElementById('dp-product').value.trim();
+  const apiKey = document.getElementById('dp-apikey').value.trim();
+  if (!product) { alert('상품명을 입력하세요.'); return; }
+  if (!apiKey) { alert('Gemini API 키를 입력하세요.'); return; }
+
+  const btn = document.getElementById('dp-generate-btn');
+  const statusCard = document.getElementById('dp-status-card');
+  const statusLog = document.getElementById('dp-status-log');
+  const resultDiv = document.getElementById('dp-result');
+
+  btn.disabled = true;
+  btn.textContent = '⏳ 생성 중...';
+  statusCard.style.display = 'block';
+  resultDiv.style.display = 'none';
+  statusLog.textContent = '이미지 생성 요청 중...\nGemini AI가 상세페이지를 만들고 있습니다. 잠시 기다려주세요.';
+
+  try {
+    const res = await fetch('/api/detail-page/generate', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        product, apiKey,
+        platform: document.getElementById('dp-platform').value,
+        style: document.getElementById('dp-style').value,
+        mode: document.getElementById('dp-mode').value,
+        quality: document.getElementById('dp-quality').value ? Number(document.getElementById('dp-quality').value) : undefined,
+      })
+    });
+    const data = await res.json();
+    if (!res.ok || data.error) {
+      statusLog.textContent = '오류: ' + (data.error || '알 수 없는 오류') + '\n\n' + (data.stdout || '');
+      btn.disabled = false;
+      btn.textContent = '🚀 상세페이지 생성 시작';
+      return;
+    }
+    statusCard.style.display = 'none';
+    resultDiv.style.display = 'block';
+
+    if (data.html) document.getElementById('dp-html-link').href = data.html;
+
+    const grid = document.getElementById('dp-image-grid');
+    grid.innerHTML = '';
+    (data.images || []).forEach(src => {
+      const img = document.createElement('img');
+      img.src = src;
+      img.style.cssText = 'width:100%;border-radius:8px;border:1px solid var(--border);cursor:pointer';
+      img.onclick = () => window.open(src, '_blank');
+      grid.appendChild(img);
+    });
+    if ((data.images || []).length === 0) {
+      grid.innerHTML = '<div style="color:var(--text3);font-size:13px">' + (data.stdout || '결과 없음') + '</div>';
+    }
+  } catch(e) {
+    statusLog.textContent = '네트워크 오류: ' + e.message;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '🚀 상세페이지 생성 시작';
+  }
+}
 </script>
 </body>
 </html>

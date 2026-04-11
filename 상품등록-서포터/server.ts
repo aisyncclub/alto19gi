@@ -677,6 +677,80 @@ const server = Bun.serve({
       }
     }
 
+    // API: 상세페이지 생성
+    if (url.pathname === "/api/detail-page/generate" && req.method === "POST") {
+      try {
+        const body = await req.json() as {
+          product: string; platform: string; style: string; mode: string; apiKey: string; quality?: number;
+        };
+        if (!body.product || !body.apiKey) {
+          return Response.json({ error: "상품명과 API 키가 필요합니다." }, { status: 400, headers: { "Access-Control-Allow-Origin": "*" } });
+        }
+        const scriptPath = join(import.meta.dir, "gemini-image.py");
+        const outputDir = join(DATA_DIR, "detail-pages", body.product.replace(/[/\\?%*:|"<>]/g, "_"));
+        mkdirSync(outputDir, { recursive: true });
+
+        const spawnArgs = ["python3", scriptPath,
+            "--product", body.product,
+            "--platform", body.platform || "alwayz",
+            "--style", body.style || "clean",
+            "--mode", body.mode || "standard",
+            "--output", outputDir,
+        ];
+        if (body.quality) spawnArgs.push("--quality", String(body.quality));
+
+        const proc = Bun.spawn(spawnArgs,
+          {
+            env: { ...process.env, GEMINI_API_KEY: body.apiKey },
+            stdout: "pipe",
+            stderr: "pipe",
+          }
+        );
+        const exitCode = await proc.exited;
+        const stdout = await new Response(proc.stdout).text();
+        const stderr = await new Response(proc.stderr).text();
+        if (exitCode !== 0) {
+          return Response.json({ error: stderr || "생성 실패", stdout }, { status: 500, headers: { "Access-Control-Allow-Origin": "*" } });
+        }
+        // 생성된 파일 목록
+        const { readdirSync } = await import("fs");
+        const imgDir = join(outputDir, "images");
+        const images = existsSync(imgDir)
+          ? readdirSync(imgDir).filter(f => f.match(/\.(jpg|jpeg|png|webp)$/i)).sort()
+          : [];
+        const htmlPath = join(outputDir, "detail-page.html");
+        return Response.json({
+          ok: true,
+          outputDir: outputDir.replace(import.meta.dir, ""),
+          images: images.map(f => `/data/detail-pages/${body.product.replace(/[/\\?%*:|"<>]/g, "_")}/images/${f}`),
+          html: existsSync(htmlPath) ? `/data/detail-pages/${body.product.replace(/[/\\?%*:|"<>]/g, "_")}/detail-page.html` : null,
+          stdout,
+        }, { headers: { "Access-Control-Allow-Origin": "*" } });
+      } catch (e: any) {
+        return Response.json({ error: e.message }, { status: 500, headers: { "Access-Control-Allow-Origin": "*" } });
+      }
+    }
+
+    // API: 상세페이지 API 키 저장/조회
+    if (url.pathname === "/api/detail-page/apikey" && req.method === "POST") {
+      const body = await req.json() as { apiKey: string };
+      const envPath = join(import.meta.dir, ".env");
+      const existing = existsSync(envPath) ? readFileSync(envPath, "utf-8") : "";
+      const updated = existing.replace(/^GEMINI_API_KEY=.*/m, "").trim();
+      writeFileSync(envPath, (updated ? updated + "\n" : "") + `GEMINI_API_KEY=${body.apiKey}\n`);
+      return Response.json({ ok: true }, { headers: { "Access-Control-Allow-Origin": "*" } });
+    }
+
+    if (url.pathname === "/api/detail-page/apikey" && req.method === "GET") {
+      const envPath = join(import.meta.dir, ".env");
+      if (existsSync(envPath)) {
+        const content = readFileSync(envPath, "utf-8");
+        const match = content.match(/^GEMINI_API_KEY=(.+)$/m);
+        if (match) return Response.json({ apiKey: match[1].trim() }, { headers: { "Access-Control-Allow-Origin": "*" } });
+      }
+      return Response.json({ apiKey: "" }, { headers: { "Access-Control-Allow-Origin": "*" } });
+    }
+
     // 정적 파일 서빙
     const filePath = url.pathname === "/" ? "/dashboard.html" : url.pathname;
     const fullPath = join(import.meta.dir, filePath);

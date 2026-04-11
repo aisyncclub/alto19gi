@@ -1,0 +1,11 @@
+Style: Clean Shopping Mall
+- White (#FFFFFF) background
+- Clean, modern typography
+- Product-centered layout
+- Subtle shadows for depth
+- Accent colors derived from the product
+- Professional e-commerce feel (like Coupang, Market Kurly)
+- Generous white space
+- Clear visual hierarchy with bold headlines
+- Price tags with discount styling (strikethrough original, bold sale price in red)
+- Trust badges in muted colors
