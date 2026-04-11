@@ -93,7 +93,7 @@ def load_api_key() -> str:
 # Prompt helpers
 # ---------------------------------------------------------------------------
 
-PROMPTS_DIR = Path(__file__).resolve().parent.parent / "prompts"
+PROMPTS_DIR = Path(__file__).resolve().parent / "prompts"
 
 STYLE_MAP = {
     "clean": "style-clean.txt",

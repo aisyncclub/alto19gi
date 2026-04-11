@@ -1,0 +1,490 @@
+[
+  {
+    "name": "참외",
+    "cost": 5000,
+    "deliveryCost": -1,
+    "isTaxable": false,
+    "category": "신선식품",
+    "roas": 500,
+    "timeDiscount": 20,
+    "id": "mnu9fjl0n4i0",
+    "createdAt": "2026-04-11T11:37:10.884Z",
+    "calc": {
+      "name": "참외",
+      "cost": 5000,
+      "deliveryCost": -1,
+      "isTaxable": false,
+      "category": "신선식품",
+      "commRate": 0.058,
+      "commRateVAT": 0.06380000000000001,
+      "roas": 500,
+      "timeDiscount": 20,
+      "modes": [
+        {
+          "mode": "공격적",
+          "mult": 1.55,
+          "price": 7900,
+          "vat": 0,
+          "commission": 504,
+          "alwayz": {
+            "normal": {
+              "profit": 2397,
+              "rate": 30.3
+            },
+            "timeCPS": {
+              "price": 6800,
+              "profit": 1367,
+              "rate": 20.1,
+              "cpsFree": true,
+              "adCost": 0
+            },
+            "timeCPC": {
+              "price": 6800,
+              "profit": 7,
+              "rate": 0.1,
+              "adCost": 1360
+            },
+            "cps": {
+              "profit": 817,
+              "rate": 10.3,
+              "adCost": 1580
+            },
+            "cpc": {
+              "profit": 817,
+              "rate": 10.3,
+              "adCost": 1580
+            },
+            "cpm": {
+              "profit": 817,
+              "rate": 10.3,
+              "adCost": 1580
+            }
+          },
+          "toss": {
+            "normal": {
+              "profit": 2111,
+              "rate": 26.7,
+              "commission": 790
+            },
+            "ad": {
+              "profit": 1163,
+              "rate": 14.7,
+              "commission": 158,
+              "adCost": 1580
+            }
+          }
+        },
+        {
+          "mode": "기본",
+          "mult": 1.8,
+          "price": 8900,
+          "vat": 0,
+          "commission": 568,
+          "alwayz": {
+            "normal": {
+              "profit": 3333,
+              "rate": 37.4
+            },
+            "timeCPS": {
+              "price": 6900,
+              "profit": 1461,
+              "rate": 21.2,
+              "cpsFree": true,
+              "adCost": 0
+            },
+            "timeCPC": {
+              "price": 6900,
+              "profit": 81,
+              "rate": 1.2,
+              "adCost": 1380
+            },
+            "cps": {
+              "profit": 1553,
+              "rate": 17.4,
+              "adCost": 1780
+            },
+            "cpc": {
+              "profit": 1553,
+              "rate": 17.4,
+              "adCost": 1780
+            },
+            "cpm": {
+              "profit": 1553,
+              "rate": 17.4,
+              "adCost": 1780
+            }
+          },
+          "toss": {
+            "normal": {
+              "profit": 3011,
+              "rate": 33.8,
+              "commission": 890
+            },
+            "ad": {
+              "profit": 1943,
+              "rate": 21.8,
+              "commission": 178,
+              "adCost": 1780
+            }
+          }
+        },
+        {
+          "mode": "널널",
+          "mult": 2.2,
+          "price": 10900,
+          "vat": 0,
+          "commission": 695,
+          "alwayz": {
+            "normal": {
+              "profit": 5206,
+              "rate": 47.8
+            },
+            "timeCPS": {
+              "price": 8800,
+              "profit": 3240,
+              "rate": 36.8,
+              "cpsFree": true,
+              "adCost": 0
+            },
+            "timeCPC": {
+              "price": 8800,
+              "profit": 1480,
+              "rate": 16.8,
+              "adCost": 1760
+            },
+            "cps": {
+              "profit": 3026,
+              "rate": 27.8,
+              "adCost": 2180
+            },
+            "cpc": {
+              "profit": 3026,
+              "rate": 27.8,
+              "adCost": 2180
+            },
+            "cpm": {
+              "profit": 3026,
+              "rate": 27.8,
+              "adCost": 2180
+            }
+          },
+          "toss": {
+            "normal": {
+              "profit": 4811,
+              "rate": 44.1,
+              "commission": 1090
+            },
+            "ad": {
+              "profit": 3503,
+              "rate": 32.1,
+              "commission": 218,
+              "adCost": 2180
+            }
+          }
+        }
+      ],
+      "options": []
+    }
+  },
+  {
+    "name": "성주 참외",
+    "deliveryCost": 0,
+    "isTaxable": false,
+    "category": "신선식품",
+    "options": [
+      {
+        "optionName": "3kg",
+        "cost": 8000
+      },
+      {
+        "optionName": "5kg",
+        "cost": 12000
+      },
+      {
+        "optionName": "10kg",
+        "cost": 20000
+      }
+    ],
+    "cost": 8000,
+    "roas": 300,
+    "timeDiscount": 20,
+    "id": "mnu9ghbuy18a",
+    "createdAt": "2026-04-11T11:37:54.618Z",
+    "calc": {
+      "name": "성주 참외",
+      "cost": 8000,
+      "deliveryCost": 0,
+      "isTaxable": false,
+      "category": "신선식품",
+      "commRate": 0.058,
+      "commRateVAT": 0.06380000000000001,
+      "roas": 300,
+      "timeDiscount": 20,
+      "modes": [
+        {
+          "mode": "공격적",
+          "mult": 1.55,
+          "price": 12800,
+          "vat": 0,
+          "commission": 817,
+          "alwayz": {
+            "normal": {
+              "profit": 3983,
+              "rate": 31.1
+            },
+            "timeCPS": {
+              "price": 9900,
+              "profit": 1268,
+              "rate": 12.8,
+              "cpsFree": true,
+              "adCost": 0
+            },
+            "timeCPC": {
+              "price": 9900,
+              "profit": -2032,
+              "rate": -20.5,
+              "adCost": 3300
+            },
+            "cps": {
+              "profit": -284,
+              "rate": -2.2,
+              "adCost": 4267
+            },
+            "cpc": {
+              "profit": -284,
+              "rate": -2.2,
+              "adCost": 4267
+            },
+            "cpm": {
+              "profit": -284,
+              "rate": -2.2,
+              "adCost": 4267
+            }
+          },
+          "toss": {
+            "normal": {
+              "profit": 3520,
+              "rate": 27.5,
+              "commission": 1280
+            },
+            "ad": {
+              "profit": 277,
+              "rate": 2.2,
+              "commission": 256,
+              "adCost": 4267
+            }
+          }
+        },
+        {
+          "mode": "기본",
+          "mult": 1.8,
+          "price": 14800,
+          "vat": 0,
+          "commission": 944,
+          "alwayz": {
+            "normal": {
+              "profit": 5856,
+              "rate": 39.6
+            },
+            "timeCPS": {
+              "price": 11900,
+              "profit": 3141,
+              "rate": 26.4,
+              "cpsFree": true,
+              "adCost": 0
+            },
+            "timeCPC": {
+              "price": 11900,
+              "profit": -826,
+              "rate": -6.9,
+              "adCost": 3967
+            },
+            "cps": {
+              "profit": 923,
+              "rate": 6.2,
+              "adCost": 4933
+            },
+            "cpc": {
+              "profit": 923,
+              "rate": 6.2,
+              "adCost": 4933
+            },
+            "cpm": {
+              "profit": 923,
+              "rate": 6.2,
+              "adCost": 4933
+            }
+          },
+          "toss": {
+            "normal": {
+              "profit": 5320,
+              "rate": 35.9,
+              "commission": 1480
+            },
+            "ad": {
+              "profit": 1571,
+              "rate": 10.6,
+              "commission": 296,
+              "adCost": 4933
+            }
+          }
+        },
+        {
+          "mode": "널널",
+          "mult": 2.2,
+          "price": 17800,
+          "vat": 0,
+          "commission": 1136,
+          "alwayz": {
+            "normal": {
+              "profit": 8664,
+              "rate": 48.7
+            },
+            "timeCPS": {
+              "price": 13900,
+              "profit": 5013,
+              "rate": 36.1,
+              "cpsFree": true,
+              "adCost": 0
+            },
+            "timeCPC": {
+              "price": 13900,
+              "profit": 380,
+              "rate": 2.7,
+              "adCost": 4633
+            },
+            "cps": {
+              "profit": 2731,
+              "rate": 15.3,
+              "adCost": 5933
+            },
+            "cpc": {
+              "profit": 2731,
+              "rate": 15.3,
+              "adCost": 5933
+            },
+            "cpm": {
+              "profit": 2731,
+              "rate": 15.3,
+              "adCost": 5933
+            }
+          },
+          "toss": {
+            "normal": {
+              "profit": 8020,
+              "rate": 45.1,
+              "commission": 1780
+            },
+            "ad": {
+              "profit": 3511,
+              "rate": 19.7,
+              "commission": 356,
+              "adCost": 5933
+            }
+          }
+        }
+      ],
+      "options": [
+        {
+          "optionName": "3kg",
+          "cost": 8000,
+          "modes": [
+            {
+              "mode": "공격적",
+              "mult": 1.55,
+              "price": 12800,
+              "profit": 3983,
+              "rate": 31.1,
+              "tossProfit": 3520,
+              "tossRate": 27.5
+            },
+            {
+              "mode": "기본",
+              "mult": 1.8,
+              "price": 14800,
+              "profit": 5856,
+              "rate": 39.6,
+              "tossProfit": 5320,
+              "tossRate": 35.9
+            },
+            {
+              "mode": "널널",
+              "mult": 2.2,
+              "price": 17800,
+              "profit": 8664,
+              "rate": 48.7,
+              "tossProfit": 8020,
+              "tossRate": 45.1
+            }
+          ]
+        },
+        {
+          "optionName": "5kg",
+          "cost": 12000,
+          "modes": [
+            {
+              "mode": "공격적",
+              "mult": 1.55,
+              "price": 18800,
+              "profit": 5601,
+              "rate": 29.8,
+              "tossProfit": 4920,
+              "tossRate": 26.2
+            },
+            {
+              "mode": "기본",
+              "mult": 1.8,
+              "price": 21800,
+              "profit": 8409,
+              "rate": 38.6,
+              "tossProfit": 7620,
+              "tossRate": 35
+            },
+            {
+              "mode": "널널",
+              "mult": 2.2,
+              "price": 26800,
+              "profit": 13090,
+              "rate": 48.8,
+              "tossProfit": 12120,
+              "tossRate": 45.2
+            }
+          ]
+        },
+        {
+          "optionName": "10kg",
+          "cost": 20000,
+          "modes": [
+            {
+              "mode": "공격적",
+              "mult": 1.55,
+              "price": 30900,
+              "profit": 8929,
+              "rate": 28.9,
+              "tossProfit": 7810,
+              "tossRate": 25.3
+            },
+            {
+              "mode": "기본",
+              "mult": 1.8,
+              "price": 35900,
+              "profit": 13610,
+              "rate": 37.9,
+              "tossProfit": 12310,
+              "tossRate": 34.3
+            },
+            {
+              "mode": "널널",
+              "mult": 2.2,
+              "price": 43900,
+              "profit": 21099,
+              "rate": 48.1,
+              "tossProfit": 19510,
+              "tossRate": 44.4
+            }
+          ]
+        }
+      ]
+    }
+  }
+]

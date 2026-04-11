@@ -1,0 +1,14 @@
+{
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -c 'if (.prompt // \"\" | contains(\"시작해줘\")) then {\"hookSpecificOutput\":{\"hookEventName\":\"UserPromptSubmit\",\"additionalContext\":\"사용자가 \\\"시작해줘\\\"라고 입력했습니다. 응답 시작 시 반드시 \\\"대시보드 열까요? (localhost:8765)\\\"라고 먼저 물어보세요.\"}} else {} end'"
+          }
+        ]
+      }
+    ]
+  }
+}

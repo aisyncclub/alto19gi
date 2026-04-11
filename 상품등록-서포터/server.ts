@@ -412,6 +412,7 @@ function calcMarginFromExcel(buffer: ArrayBuffer) {
 // ── Bun 서버 ──
 const server = Bun.serve({
   port: PORT,
+  idleTimeout: 255, // 최대값 255초 (Bun 제한)
   async fetch(req) {
     const url = new URL(req.url);
 
@@ -677,58 +678,180 @@ const server = Bun.serve({
       }
     }
 
-    // API: 상세페이지 생성
-    if (url.pathname === "/api/detail-page/generate" && req.method === "POST") {
+    // API: 상세페이지 블록 미리보기 (프롬프트 승인용)
+    if (url.pathname === "/api/detail-page/preview" && req.method === "POST") {
       try {
-        const body = await req.json() as {
-          product: string; platform: string; style: string; mode: string; apiKey: string; quality?: number;
+        const body = await req.json() as { product: string; mode: string; style: string; platform: string };
+        const BLOCKS_LITE     = ["히어로","셀링포인트","시즐컷","배송","CTA"];
+        const BLOCKS_STANDARD = ["히어로","셀링포인트","시즐컷","원재료","소셜프루프","배송","CTA"];
+        const BLOCKS_FULL     = ["히어로","셀링포인트","시즐컷","원재료","제조공정","맛설명","소셜프루프","보관해동","배송","CTA"];
+        const modeMap: Record<string,string[]> = { lite: BLOCKS_LITE, standard: BLOCKS_STANDARD, full: BLOCKS_FULL, prompt: BLOCKS_STANDARD };
+        const blockNames = modeMap[body.mode] ?? BLOCKS_STANDARD;
+        const p = body.product;
+        const defaultCopy: Record<string,string> = {
+          "히어로":    `${p} — 신선한 맛 그대로`,
+          "셀링포인트": `${p}를 선택해야 하는 3가지 이유`,
+          "시즐컷":    `한 입 베어물면 알 수 있어요`,
+          "원재료":    `좋은 재료가 맛의 시작입니다`,
+          "제조공정":  `위생적인 과정, 믿을 수 있는 품질`,
+          "맛설명":    `${p}의 달콤함과 풍미를 느껴보세요`,
+          "소셜프루프": `구매 고객 만족도 ★4.9 / 재구매율 76%`,
+          "보관해동":  `냉장 보관 / 유통기한 O일`,
+          "배송":      `신선 보냉 포장 · 당일 출고`,
+          "CTA":       `지금 바로 주문하세요! 오늘만 특가`,
+          "FAQ":       `자주 묻는 질문`,
+          "가격구성":  `합리적인 구성으로 더 알뜰하게`,
+          "브랜드스토리": `믿음으로 만든 ${p}`,
+          "영양정보":  `${p} 영양 성분표`,
+          "법적표기":  `원재료명 및 성분 표시`,
+          "조리법":    `맛있게 먹는 방법`,
         };
-        if (!body.product || !body.apiKey) {
-          return Response.json({ error: "상품명과 API 키가 필요합니다." }, { status: 400, headers: { "Access-Control-Allow-Origin": "*" } });
-        }
-        const scriptPath = join(import.meta.dir, "gemini-image.py");
-        const outputDir = join(DATA_DIR, "detail-pages", body.product.replace(/[/\\?%*:|"<>]/g, "_"));
-        mkdirSync(outputDir, { recursive: true });
-
-        const spawnArgs = ["python3", scriptPath,
-            "--product", body.product,
-            "--platform", body.platform || "alwayz",
-            "--style", body.style || "clean",
-            "--mode", body.mode || "standard",
-            "--output", outputDir,
-        ];
-        if (body.quality) spawnArgs.push("--quality", String(body.quality));
-
-        const proc = Bun.spawn(spawnArgs,
-          {
-            env: { ...process.env, GEMINI_API_KEY: body.apiKey },
-            stdout: "pipe",
-            stderr: "pipe",
-          }
-        );
-        const exitCode = await proc.exited;
-        const stdout = await new Response(proc.stdout).text();
-        const stderr = await new Response(proc.stderr).text();
-        if (exitCode !== 0) {
-          return Response.json({ error: stderr || "생성 실패", stdout }, { status: 500, headers: { "Access-Control-Allow-Origin": "*" } });
-        }
-        // 생성된 파일 목록
-        const { readdirSync } = await import("fs");
-        const imgDir = join(outputDir, "images");
-        const images = existsSync(imgDir)
-          ? readdirSync(imgDir).filter(f => f.match(/\.(jpg|jpeg|png|webp)$/i)).sort()
-          : [];
-        const htmlPath = join(outputDir, "detail-page.html");
-        return Response.json({
-          ok: true,
-          outputDir: outputDir.replace(import.meta.dir, ""),
-          images: images.map(f => `/data/detail-pages/${body.product.replace(/[/\\?%*:|"<>]/g, "_")}/images/${f}`),
-          html: existsSync(htmlPath) ? `/data/detail-pages/${body.product.replace(/[/\\?%*:|"<>]/g, "_")}/detail-page.html` : null,
-          stdout,
-        }, { headers: { "Access-Control-Allow-Origin": "*" } });
+        const blocks = blockNames.map((name, i) => ({
+          num: i + 1,
+          name,
+          copy: defaultCopy[name] ?? `${p} — ${name}`,
+          hint: `블록 ${i+1}: ${name} 섹션`,
+        }));
+        return Response.json({ ok: true, blocks, product: p, style: body.style, platform: body.platform, mode: body.mode }, { headers: { "Access-Control-Allow-Origin": "*" } });
       } catch (e: any) {
         return Response.json({ error: e.message }, { status: 500, headers: { "Access-Control-Allow-Origin": "*" } });
       }
+    }
+
+    // API: 상세페이지 생성 (SSE 스트리밍 + 병렬)
+    if (url.pathname === "/api/detail-page/generate" && req.method === "POST") {
+      const body = await req.json() as {
+        product: string; platform: string; style: string; mode: string; apiKey: string;
+        quality?: number; blocks?: { num: number; name: string; copy: string }[];
+      };
+      if (!body.product || !body.apiKey) {
+        return Response.json({ error: "상품명과 API 키가 필요합니다." }, { status: 400, headers: { "Access-Control-Allow-Origin": "*" } });
+      }
+
+      const scriptPath = join(import.meta.dir, "gemini-image.py");
+      const safeProduct = body.product.replace(/[/\\?%*:|"<>]/g, "_");
+      const outputDir = join(DATA_DIR, "detail-pages", safeProduct);
+      mkdirSync(outputDir, { recursive: true });
+
+      const platform = (body.platform || "alwayz") === "naver" ? "smartstore" : (body.platform || "alwayz");
+      const isPromptOnly = body.mode === "prompt";
+
+      // 블록 목록: 미리보기에서 받은 blocks 우선, 없으면 기본 세트
+      let blocks: { num: number; name: string; copy: string }[];
+      if (body.blocks && body.blocks.length > 0) {
+        blocks = body.blocks;
+      } else {
+        const BLOCKS_LITE     = ["히어로","셀링포인트","시즐컷","배송","CTA"];
+        const BLOCKS_STANDARD = ["히어로","셀링포인트","시즐컷","원재료","소셜프루프","배송","CTA"];
+        const BLOCKS_FULL     = ["히어로","셀링포인트","시즐컷","원재료","제조공정","맛설명","소셜프루프","보관해동","배송","CTA"];
+        const modeMap: Record<string,string[]> = { lite: BLOCKS_LITE, standard: BLOCKS_STANDARD, full: BLOCKS_FULL, prompt: BLOCKS_STANDARD };
+        const names = modeMap[body.mode] ?? BLOCKS_STANDARD;
+        blocks = names.map((name, i) => ({ num: i+1, name, copy: `${body.product} — ${name}` }));
+      }
+
+      const enc = new TextEncoder();
+      const quality = body.quality ? String(body.quality) : null;
+      const apiKey = body.apiKey;
+      const style = body.style || "clean";
+
+      const stream = new ReadableStream({
+        async start(controller) {
+          const send = (obj: object) => controller.enqueue(enc.encode(`data: ${JSON.stringify(obj)}\n\n`));
+
+          // 30초마다 heartbeat (idle 타임아웃 방지)
+          const heartbeat = setInterval(() => {
+            try { controller.enqueue(enc.encode(`: heartbeat\n\n`)); } catch {}
+          }, 30_000);
+
+          send({ type: "start", total: blocks.length, product: body.product });
+
+          // 병렬 생성
+          await Promise.all(blocks.map(async (block) => {
+            send({ type: "generating", num: block.num, name: block.name });
+            try {
+              const args = ["python3", scriptPath,
+                "--product", body.product,
+                "--block", block.name,
+                "--block-num", String(block.num),
+                "--copy", block.copy || `${body.product} — ${block.name}`,
+                "--style", style,
+                "--platform", platform,
+                "--output", outputDir,
+              ];
+              if (isPromptOnly) args.push("--prompt-only");
+              if (quality) args.push("--quality", quality);
+
+              const proc = Bun.spawn(args, {
+                env: { ...process.env, GEMINI_API_KEY: apiKey },
+                stdout: "pipe", stderr: "pipe",
+              });
+              const exitCode = await proc.exited;
+              const stderr = await new Response(proc.stderr).text();
+              if (exitCode === 0) {
+                if (isPromptOnly) {
+                  // 프롬프트 파일 읽어서 전송
+                  const promptFile = join(outputDir, `${String(block.num).padStart(2,"0")}_${block.name}_prompt.txt`);
+                  const promptText = existsSync(promptFile) ? readFileSync(promptFile, "utf-8") : "";
+                  send({ type: "done", num: block.num, name: block.name, promptText });
+                } else {
+                  const filename = `${String(block.num).padStart(2,"0")}_${block.name}.jpg`;
+                  send({ type: "done", num: block.num, name: block.name,
+                    path: `/data/detail-pages/${safeProduct}/${filename}` });
+                }
+              } else {
+                send({ type: "failed", num: block.num, name: block.name, error: stderr.slice(0, 200) });
+              }
+            } catch (e: any) {
+              send({ type: "failed", num: block.num, name: block.name, error: e.message });
+            }
+          }));
+
+          // 생성된 이미지 목록 수집 + 합본
+          try {
+            const { readdirSync } = await import("fs");
+            const images = readdirSync(outputDir)
+              .filter(f => f.match(/^\d+_.*\.(jpg|jpeg|png|webp)$/i))
+              .sort()
+              .map(f => `/data/detail-pages/${safeProduct}/${f}`);
+
+            // Pillow로 합본 생성
+            const combineScript = `
+from PIL import Image
+import pathlib, re, functools
+d = pathlib.Path(r'${outputDir}')
+fs = sorted([f for f in d.iterdir() if re.match(r'\\d+_.*\\.(jpg|jpeg|png|webp)$', f.name, re.I)])
+if fs:
+    imgs = [Image.open(f).convert('RGB') for f in fs]
+    c = Image.new('RGB', (imgs[0].width, sum(i.height for i in imgs)), (255,255,255))
+    y = 0
+    for i in imgs:
+        c.paste(i, (0, y)); y += i.height
+    c.save(r'${outputDir}/combined_전체.jpg', quality=85)
+    print('combined ok')
+`.trim();
+
+            const combineProc = Bun.spawn(["python3", "-c", combineScript],
+              { stdout: "pipe", stderr: "pipe" });
+            await combineProc.exited;
+
+            send({ type: "complete", images,
+              combined: existsSync(join(outputDir, "combined_전체.jpg"))
+                ? `/data/detail-pages/${safeProduct}/combined_전체.jpg` : null });
+          } catch (_) {
+            send({ type: "complete", images: [], combined: null });
+          }
+
+          clearInterval(heartbeat);
+          controller.close();
+        }
+      });
+
+      return new Response(stream, { headers: {
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache",
+        "Connection": "keep-alive",
+        "Access-Control-Allow-Origin": "*",
+      }});
     }
 
     // API: 상세페이지 API 키 저장/조회

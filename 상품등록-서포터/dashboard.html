@@ -560,24 +560,39 @@ CS 리스크 낮은 것 위주로.
           <div style="font-size:11px;color:var(--text3);margin-top:4px">숫자가 높을수록 선명하지만 파일 크기가 커집니다</div>
         </div>
       </div>
-      <button class="btn btn-primary" onclick="dpGenerate()" id="dp-generate-btn" style="width:100%;justify-content:center;padding:14px">
-        🚀 상세페이지 생성 시작
+      <button class="btn btn-primary" onclick="dpPreview()" id="dp-preview-btn" style="width:100%;justify-content:center;padding:14px">
+        🔍 프롬프트 미리보기
       </button>
     </div>
 
-    <!-- 상태/로그 -->
-    <div class="card" id="dp-status-card" style="display:none">
-      <div class="card-title">⏳ 생성 중...</div>
-      <div id="dp-status-log" style="font-size:12px;color:var(--text2);background:var(--bg);padding:12px;border-radius:var(--r-sm);font-family:monospace;white-space:pre-wrap;max-height:200px;overflow-y:auto"></div>
+    <!-- 미리보기 모달 -->
+    <div id="dp-preview-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1000;overflow-y:auto;padding:20px">
+      <div style="max-width:760px;margin:0 auto;background:var(--bg2);border-radius:12px;padding:24px;border:1px solid var(--border2)">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+          <div style="font-size:16px;font-weight:700">📋 블록별 카피 미리보기</div>
+          <button onclick="dpClosePreview()" style="background:none;border:none;color:var(--text2);font-size:20px;cursor:pointer">✕</button>
+        </div>
+        <div style="font-size:13px;color:var(--text2);margin-bottom:16px">각 블록의 카피 문구를 확인하고 수정하세요. 승인하면 이미지 생성이 시작됩니다.</div>
+        <div id="dp-preview-blocks"></div>
+        <div style="display:flex;gap:8px;margin-top:20px">
+          <button class="btn btn-primary" onclick="dpApproveGenerate()" style="flex:1;justify-content:center;padding:14px">
+            ✅ 승인 후 병렬 생성 시작
+          </button>
+          <button class="btn btn-outline" onclick="dpClosePreview()">취소</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 진행 상황 -->
+    <div id="dp-progress-card" style="display:none" class="card">
+      <div class="card-title">⚡ 병렬 생성 중...</div>
+      <div id="dp-progress-blocks" style="display:grid;gap:8px;margin-top:8px"></div>
     </div>
 
     <!-- 결과 -->
     <div id="dp-result" style="display:none">
       <div class="section-title" style="margin-top:8px">✅ 생성 완료</div>
       <div class="card">
-        <div style="display:flex;gap:8px;margin-bottom:16px">
-          <a id="dp-html-link" href="#" target="_blank" class="btn btn-primary btn-sm">🌐 HTML 미리보기</a>
-        </div>
         <div id="dp-image-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px"></div>
       </div>
     </div>
@@ -1363,8 +1378,49 @@ let excelCalcResults = null;
 // ═══════════════════════════════════════
 
 function downloadMarginTemplate() {
-  window.location.href = '/api/margin-template';
-  showToast('템플릿 다운로드 시작!');
+  try {
+    const wb = XLSX.utils.book_new();
+
+    // 입력 시트
+    const sampleData = [
+      { "상품명": "예) 성주 참외", "옵션명": "3kg", "원가": 8000, "택배비": 0, "과세구분": "면세", "카테고리": "신선식품" },
+      { "상품명": "예) 성주 참외", "옵션명": "5kg", "원가": 12000, "택배비": 0, "과세구분": "면세", "카테고리": "신선식품" },
+      { "상품명": "예) 성주 참외", "옵션명": "10kg", "원가": 20000, "택배비": 0, "과세구분": "면세", "카테고리": "신선식품" },
+      { "상품명": "", "옵션명": "", "원가": "", "택배비": "", "과세구분": "", "카테고리": "" },
+    ];
+    const ws = XLSX.utils.json_to_sheet(sampleData);
+    ws["!cols"] = [
+      { wch: 20 }, { wch: 15 }, { wch: 12 }, { wch: 10 }, { wch: 12 }, { wch: 15 },
+    ];
+    XLSX.utils.book_append_sheet(wb, ws, "상품입력");
+
+    // 안내 시트
+    const guideData = [
+      { "항목": "상품명", "설명": "상품 이름 (같은 상품의 옵션은 상품명을 동일하게 적어주세요)", "예시": "성주 참외" },
+      { "항목": "옵션명", "설명": "용량, 무게, 개수 등 (없으면 비워두세요)", "예시": "3kg" },
+      { "항목": "원가", "설명": "도매에서 사는 가격 (숫자만)", "예시": "8000" },
+      { "항목": "택배비", "설명": "내가 부담하는 택배비 (무료배송이면 0)", "예시": "0" },
+      { "항목": "과세구분", "설명": "면세 또는 과세 (과일/채소=면세, 가공식품/공산품=과세)", "예시": "면세" },
+      { "항목": "카테고리", "설명": "아래 카테고리 중 선택 (수수료가 달라요)", "예시": "신선식품" },
+      { "항목": "", "설명": "", "예시": "" },
+      { "항목": "[ 카테고리 목록 ]", "설명": "수수료율", "예시": "" },
+      { "항목": "신선식품", "설명": "5.8%", "예시": "과일, 채소, 생선, 고기" },
+      { "항목": "건강식품", "설명": "7.6%", "예시": "건강즙, 영양제" },
+      { "항목": "가공식품", "설명": "10.6%", "예시": "과자, 음료, 즉석식품" },
+      { "항목": "생활소품", "설명": "7.8%", "예시": "소형 생활용품" },
+      { "항목": "뷰티", "설명": "9.6%", "예시": "화장품, 스킨케어" },
+      { "항목": "패션", "설명": "10.5%", "예시": "의류, 잡화" },
+      { "항목": "생활용품", "설명": "10.8%", "예시": "대형 생활용품, 주방" },
+    ];
+    const ws2 = XLSX.utils.json_to_sheet(guideData);
+    ws2["!cols"] = [{ wch: 18 }, { wch: 50 }, { wch: 25 }];
+    XLSX.utils.book_append_sheet(wb, ws2, "작성방법");
+
+    XLSX.writeFile(wb, "마진계산_템플릿.xlsx");
+    showToast('템플릿 다운로드 완료!');
+  } catch(e) {
+    showToast('다운로드 실패: ' + e.message);
+  }
 }
 
 function handleMarginExcelDrop(e) {
@@ -2409,22 +2465,99 @@ async function dpSaveApiKey() {
   alert('저장되었습니다.');
 }
 
-async function dpGenerate() {
+// ── 상세페이지 ──
+function dpCopyPrompt(btn, textareaId) {
+  const text = document.getElementById(textareaId).value;
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = '✅ 복사됨!';
+    setTimeout(() => btn.textContent = '📋 복사', 2000);
+  });
+}
+
+// ── 상세페이지: 미리보기 ──
+let dpApprovedBlocks = null;
+
+async function dpPreview() {
   const product = document.getElementById('dp-product').value.trim();
   const apiKey = document.getElementById('dp-apikey').value.trim();
   if (!product) { alert('상품명을 입력하세요.'); return; }
   if (!apiKey) { alert('Gemini API 키를 입력하세요.'); return; }
 
-  const btn = document.getElementById('dp-generate-btn');
-  const statusCard = document.getElementById('dp-status-card');
-  const statusLog = document.getElementById('dp-status-log');
-  const resultDiv = document.getElementById('dp-result');
-
+  const btn = document.getElementById('dp-preview-btn');
   btn.disabled = true;
-  btn.textContent = '⏳ 생성 중...';
-  statusCard.style.display = 'block';
+  btn.textContent = '⏳ 불러오는 중...';
+
+  try {
+    const res = await fetch('/api/detail-page/preview', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        product,
+        mode: document.getElementById('dp-mode').value,
+        style: document.getElementById('dp-style').value,
+        platform: document.getElementById('dp-platform').value,
+      })
+    });
+    const data = await res.json();
+    if (!res.ok || data.error) { alert('오류: ' + data.error); return; }
+
+    // 미리보기 모달 렌더링
+    const container = document.getElementById('dp-preview-blocks');
+    container.innerHTML = '';
+    dpApprovedBlocks = data.blocks;
+
+    data.blocks.forEach((block, i) => {
+      const row = document.createElement('div');
+      row.style.cssText = 'background:var(--bg3);border-radius:8px;padding:12px;margin-bottom:8px';
+      row.innerHTML = `
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+          <span style="background:var(--blue);color:#fff;border-radius:4px;padding:2px 8px;font-size:11px;font-weight:700">
+            ${block.num}
+          </span>
+          <span style="font-weight:700;font-size:13px">${block.name}</span>
+        </div>
+        <input id="dp-copy-${i}" type="text" value="${block.copy.replace(/"/g,'&quot;')}"
+          style="width:100%;padding:8px 12px;background:var(--bg);border:1px solid var(--border2);border-radius:6px;color:var(--text);font-size:13px;font-family:inherit"
+          oninput="dpApprovedBlocks[${i}].copy = this.value">
+      `;
+      container.appendChild(row);
+    });
+
+    document.getElementById('dp-preview-modal').style.display = 'block';
+  } catch(e) {
+    alert('네트워크 오류: ' + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '🔍 프롬프트 미리보기';
+  }
+}
+
+function dpClosePreview() {
+  document.getElementById('dp-preview-modal').style.display = 'none';
+}
+
+async function dpApproveGenerate() {
+  dpClosePreview();
+
+  const product = document.getElementById('dp-product').value.trim();
+  const apiKey  = document.getElementById('dp-apikey').value.trim();
+  const progressCard = document.getElementById('dp-progress-card');
+  const progressBlocks = document.getElementById('dp-progress-blocks');
+  const resultDiv = document.getElementById('dp-result');
+  const grid = document.getElementById('dp-image-grid');
+
+  // 진행 상황 초기화
+  progressCard.style.display = 'block';
   resultDiv.style.display = 'none';
-  statusLog.textContent = '이미지 생성 요청 중...\nGemini AI가 상세페이지를 만들고 있습니다. 잠시 기다려주세요.';
+  grid.innerHTML = '';
+
+  const blockStatus = {};
+  progressBlocks.innerHTML = dpApprovedBlocks.map(b =>
+    `<div id="dp-pblock-${b.num}" style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--bg3);border-radius:6px;border:1px solid var(--border)">
+      <span id="dp-picon-${b.num}" style="font-size:16px">⏳</span>
+      <span style="font-weight:600;font-size:13px">${b.num}. ${b.name}</span>
+      <span id="dp-pstatus-${b.num}" style="font-size:11px;color:var(--text3);margin-left:auto">대기 중</span>
+    </div>`
+  ).join('');
 
   try {
     const res = await fetch('/api/detail-page/generate', {
@@ -2435,37 +2568,109 @@ async function dpGenerate() {
         style: document.getElementById('dp-style').value,
         mode: document.getElementById('dp-mode').value,
         quality: document.getElementById('dp-quality').value ? Number(document.getElementById('dp-quality').value) : undefined,
+        blocks: dpApprovedBlocks,
       })
     });
-    const data = await res.json();
-    if (!res.ok || data.error) {
-      statusLog.textContent = '오류: ' + (data.error || '알 수 없는 오류') + '\n\n' + (data.stdout || '');
-      btn.disabled = false;
-      btn.textContent = '🚀 상세페이지 생성 시작';
-      return;
-    }
-    statusCard.style.display = 'none';
-    resultDiv.style.display = 'block';
 
-    if (data.html) document.getElementById('dp-html-link').href = data.html;
+    if (!res.ok) { alert('서버 오류'); progressCard.style.display = 'none'; return; }
 
-    const grid = document.getElementById('dp-image-grid');
-    grid.innerHTML = '';
-    (data.images || []).forEach(src => {
-      const img = document.createElement('img');
-      img.src = src;
-      img.style.cssText = 'width:100%;border-radius:8px;border:1px solid var(--border);cursor:pointer';
-      img.onclick = () => window.open(src, '_blank');
-      grid.appendChild(img);
-    });
-    if ((data.images || []).length === 0) {
-      grid.innerHTML = '<div style="color:var(--text3);font-size:13px">' + (data.stdout || '결과 없음') + '</div>';
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buf = '';
+    const completedImages = [];
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buf += decoder.decode(value, { stream: true });
+      const lines = buf.split('\n');
+      buf = lines.pop();
+
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        let evt;
+        try { evt = JSON.parse(line.slice(6)); } catch { continue; }
+
+        if (evt.type === 'generating') {
+          const icon = document.getElementById(`dp-picon-${evt.num}`);
+          const status = document.getElementById(`dp-pstatus-${evt.num}`);
+          if (icon) icon.textContent = '🔄';
+          if (status) status.textContent = 'AI 생성 중...';
+        } else if (evt.type === 'done') {
+          const block = document.getElementById(`dp-pblock-${evt.num}`);
+          const icon  = document.getElementById(`dp-picon-${evt.num}`);
+          const status = document.getElementById(`dp-pstatus-${evt.num}`);
+          if (icon) icon.textContent = '✅';
+          if (status) { status.textContent = '완료'; status.style.color = 'var(--green)'; }
+          if (block) block.style.borderColor = 'var(--green)';
+
+          if (evt.promptText !== undefined) {
+            // Prompt-only 모드: 프롬프트 텍스트 표시
+            resultDiv.style.display = 'block';
+            const existing = document.getElementById(`dp-prompt-${evt.num}`);
+            if (!existing) {
+              const card = document.createElement('div');
+              card.id = `dp-prompt-${evt.num}`;
+              card.style.cssText = 'background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:16px;margin-bottom:12px';
+              card.innerHTML = `
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+                  <div style="font-weight:700;font-size:13px">블록 ${evt.num}. ${evt.name}</div>
+                  <button onclick="dpCopyPrompt(this,'dp-pt-${evt.num}')"
+                    style="background:var(--bg4);border:1px solid var(--border2);border-radius:6px;padding:4px 12px;color:var(--text2);font-size:12px;cursor:pointer">
+                    📋 복사
+                  </button>
+                </div>
+                <textarea id="dp-pt-${evt.num}" readonly
+                  style="width:100%;height:160px;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:10px;color:var(--text2);font-size:11px;font-family:monospace;resize:vertical;line-height:1.5"
+                >${evt.promptText.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</textarea>`;
+              grid.appendChild(card);
+            }
+          } else {
+            // 이미지 모드: 완료된 이미지 즉시 표시
+            completedImages.push({ num: evt.num, path: evt.path });
+            resultDiv.style.display = 'block';
+            completedImages.sort((a,b) => a.num - b.num).forEach(ci => {
+              const existing = document.getElementById(`dp-img-${ci.num}`);
+              if (!existing) {
+                const img = document.createElement('img');
+                img.id = `dp-img-${ci.num}`;
+                img.src = ci.path + '?t=' + Date.now();
+                img.style.cssText = 'width:100%;border-radius:8px;border:1px solid var(--border);cursor:pointer';
+                img.onclick = () => window.open(ci.path, '_blank');
+                img.title = `블록 ${ci.num}`;
+                grid.appendChild(img);
+              }
+            });
+          }
+        } else if (evt.type === 'failed') {
+          const icon = document.getElementById(`dp-picon-${evt.num}`);
+          const status = document.getElementById(`dp-pstatus-${evt.num}`);
+          if (icon) icon.textContent = '❌';
+          if (status) { status.textContent = '실패'; status.style.color = 'var(--red)'; }
+        } else if (evt.type === 'complete') {
+          const isPrompt = document.getElementById('dp-mode').value === 'prompt';
+          const count = isPrompt ? dpApprovedBlocks.length : completedImages.length;
+          progressCard.querySelector('.card-title').textContent =
+            isPrompt ? `✅ 프롬프트 생성 완료 (${count}개)` : `✅ 병렬 생성 완료 (${count}/${dpApprovedBlocks.length}장)`;
+
+          // 프롬프트 모드: 전체 복사 버튼 추가
+          if (isPrompt) {
+            const allBtn = document.createElement('button');
+            allBtn.textContent = '📋 전체 프롬프트 복사';
+            allBtn.style.cssText = 'margin-top:12px;width:100%;padding:10px;background:var(--blue);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer';
+            allBtn.onclick = () => {
+              const all = [...document.querySelectorAll('[id^="dp-pt-"]')]
+                .map(el => `=== 블록 ${el.id.replace('dp-pt-','')} ===\n${el.value}`)
+                .join('\n\n');
+              navigator.clipboard.writeText(all).then(() => { allBtn.textContent = '✅ 복사됨!'; setTimeout(()=>allBtn.textContent='📋 전체 프롬프트 복사',2000); });
+            };
+            grid.appendChild(allBtn);
+          }
+        }
+      }
     }
   } catch(e) {
-    statusLog.textContent = '네트워크 오류: ' + e.message;
-  } finally {
-    btn.disabled = false;
-    btn.textContent = '🚀 상세페이지 생성 시작';
+    progressCard.querySelector('.card-title').textContent = '❌ 오류: ' + e.message;
   }
 }
 </script>

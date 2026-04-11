@@ -1,0 +1,160 @@
+# 참외 — 이미지 프롬프트 모음
+
+### [1] 히어로
+
+Create a Korean food e-commerce product detail page image section.
+Follow the standard Korean food e-commerce detail page format (쿠팡, 마켓컬리, 스마트스토어 style).
+
+Product: 참외
+
+Text content to include IN the image (Korean):
+
+
+Layout: Vertical format, 720px wide style for mobile shopping
+IMPORTANT: All Korean text must be clearly readable and correctly rendered.
+IMPORTANT: This is one section of a product detail page, not a full page.
+
+CRITICAL RULES:
+- DO NOT include any price or cost information unless explicitly provided in the copy text above.
+- DO NOT show internal section labels like '셀링포인트', '시즐컷', '소셜프루프', '히어로', 'CTA' etc. These are internal names, NOT consumer-facing text.
+- DO NOT show section numbers (01, 02, etc.) in the image.
+- The image should look like a real product detail page section that a consumer would see on Coupang or Market Kurly.
+- Only display the actual marketing copy text provided above — nothing else.
+
+---
+
+### [2] 셀링포인트
+
+Create a Korean food e-commerce product detail page image section.
+Follow the standard Korean food e-commerce detail page format (쿠팡, 마켓컬리, 스마트스토어 style).
+
+Product: 참외
+
+Text content to include IN the image (Korean):
+
+
+Layout: Vertical format, 720px wide style for mobile shopping
+IMPORTANT: All Korean text must be clearly readable and correctly rendered.
+IMPORTANT: This is one section of a product detail page, not a full page.
+
+CRITICAL RULES:
+- DO NOT include any price or cost information unless explicitly provided in the copy text above.
+- DO NOT show internal section labels like '셀링포인트', '시즐컷', '소셜프루프', '히어로', 'CTA' etc. These are internal names, NOT consumer-facing text.
+- DO NOT show section numbers (01, 02, etc.) in the image.
+- The image should look like a real product detail page section that a consumer would see on Coupang or Market Kurly.
+- Only display the actual marketing copy text provided above — nothing else.
+
+---
+
+### [3] 시즐컷
+
+Create a Korean food e-commerce product detail page image section.
+Follow the standard Korean food e-commerce detail page format (쿠팡, 마켓컬리, 스마트스토어 style).
+
+Product: 참외
+
+Text content to include IN the image (Korean):
+
+
+Layout: Vertical format, 720px wide style for mobile shopping
+IMPORTANT: All Korean text must be clearly readable and correctly rendered.
+IMPORTANT: This is one section of a product detail page, not a full page.
+
+CRITICAL RULES:
+- DO NOT include any price or cost information unless explicitly provided in the copy text above.
+- DO NOT show internal section labels like '셀링포인트', '시즐컷', '소셜프루프', '히어로', 'CTA' etc. These are internal names, NOT consumer-facing text.
+- DO NOT show section numbers (01, 02, etc.) in the image.
+- The image should look like a real product detail page section that a consumer would see on Coupang or Market Kurly.
+- Only display the actual marketing copy text provided above — nothing else.
+
+---
+
+### [4] 원재료
+
+Create a Korean food e-commerce product detail page image section.
+Follow the standard Korean food e-commerce detail page format (쿠팡, 마켓컬리, 스마트스토어 style).
+
+Product: 참외
+
+Text content to include IN the image (Korean):
+
+
+Layout: Vertical format, 720px wide style for mobile shopping
+IMPORTANT: All Korean text must be clearly readable and correctly rendered.
+IMPORTANT: This is one section of a product detail page, not a full page.
+
+CRITICAL RULES:
+- DO NOT include any price or cost information unless explicitly provided in the copy text above.
+- DO NOT show internal section labels like '셀링포인트', '시즐컷', '소셜프루프', '히어로', 'CTA' etc. These are internal names, NOT consumer-facing text.
+- DO NOT show section numbers (01, 02, etc.) in the image.
+- The image should look like a real product detail page section that a consumer would see on Coupang or Market Kurly.
+- Only display the actual marketing copy text provided above — nothing else.
+
+---
+
+### [5] 소셜프루프
+
+Create a Korean food e-commerce product detail page image section.
+Follow the standard Korean food e-commerce detail page format (쿠팡, 마켓컬리, 스마트스토어 style).
+
+Product: 참외
+
+Text content to include IN the image (Korean):
+
+
+Layout: Vertical format, 720px wide style for mobile shopping
+IMPORTANT: All Korean text must be clearly readable and correctly rendered.
+IMPORTANT: This is one section of a product detail page, not a full page.
+
+CRITICAL RULES:
+- DO NOT include any price or cost information unless explicitly provided in the copy text above.
+- DO NOT show internal section labels like '셀링포인트', '시즐컷', '소셜프루프', '히어로', 'CTA' etc. These are internal names, NOT consumer-facing text.
+- DO NOT show section numbers (01, 02, etc.) in the image.
+- The image should look like a real product detail page section that a consumer would see on Coupang or Market Kurly.
+- Only display the actual marketing copy text provided above — nothing else.
+
+---
+
+### [6] 배송
+
+Create a Korean food e-commerce product detail page image section.
+Follow the standard Korean food e-commerce detail page format (쿠팡, 마켓컬리, 스마트스토어 style).
+
+Product: 참외
+
+Text content to include IN the image (Korean):
+
+
+Layout: Vertical format, 720px wide style for mobile shopping
+IMPORTANT: All Korean text must be clearly readable and correctly rendered.
+IMPORTANT: This is one section of a product detail page, not a full page.
+
+CRITICAL RULES:
+- DO NOT include any price or cost information unless explicitly provided in the copy text above.
+- DO NOT show internal section labels like '셀링포인트', '시즐컷', '소셜프루프', '히어로', 'CTA' etc. These are internal names, NOT consumer-facing text.
+- DO NOT show section numbers (01, 02, etc.) in the image.
+- The image should look like a real product detail page section that a consumer would see on Coupang or Market Kurly.
+- Only display the actual marketing copy text provided above — nothing else.
+
+---
+
+### [7] CTA
+
+Create a Korean food e-commerce product detail page image section.
+Follow the standard Korean food e-commerce detail page format (쿠팡, 마켓컬리, 스마트스토어 style).
+
+Product: 참외
+
+Text content to include IN the image (Korean):
+
+
+Layout: Vertical format, 720px wide style for mobile shopping
+IMPORTANT: All Korean text must be clearly readable and correctly rendered.
+IMPORTANT: This is one section of a product detail page, not a full page.
+
+CRITICAL RULES:
+- DO NOT include any price or cost information unless explicitly provided in the copy text above.
+- DO NOT show internal section labels like '셀링포인트', '시즐컷', '소셜프루프', '히어로', 'CTA' etc. These are internal names, NOT consumer-facing text.
+- DO NOT show section numbers (01, 02, etc.) in the image.
+- The image should look like a real product detail page section that a consumer would see on Coupang or Market Kurly.
+- Only display the actual marketing copy text provided above — nothing else.

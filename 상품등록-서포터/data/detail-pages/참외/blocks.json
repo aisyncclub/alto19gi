@@ -1,0 +1,34 @@
+{
+  "product": "참외",
+  "style": "clean",
+  "blocks": [
+    {
+      "name": "히어로",
+      "copy": ""
+    },
+    {
+      "name": "셀링포인트",
+      "copy": ""
+    },
+    {
+      "name": "시즐컷",
+      "copy": ""
+    },
+    {
+      "name": "원재료",
+      "copy": ""
+    },
+    {
+      "name": "소셜프루프",
+      "copy": ""
+    },
+    {
+      "name": "배송",
+      "copy": ""
+    },
+    {
+      "name": "CTA",
+      "copy": ""
+    }
+  ]
+}
