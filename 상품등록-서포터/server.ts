@@ -330,6 +330,159 @@ function createMarginTemplate(): Buffer {
   return XLSX.write(wb, { type: "buffer", bookType: "xlsx" });
 }
 
+// ── 수식 포함 엑셀 생성 (사용자가 엑셀에서 값 편집 시 자동 재계산) ──
+function createMarginFormulaExport(products: any[]): Buffer {
+  const wb = XLSX.utils.book_new();
+
+  // 옵션별로 평탄화
+  type Row = {
+    name: string; option: string; cost: number; deliveryCost: number;
+    isTaxable: boolean; category: string; roas: number; timeDiscount: number;
+    mult: number;
+  };
+  const rows: Row[] = [];
+  for (const p of products) {
+    const roas = p.roas ?? p.calc?.roas ?? 300;
+    const timeDiscount = p.timeDiscount ?? p.calc?.timeDiscount ?? 20;
+    const category = p.category || p.calc?.category || "신선식품";
+    const opts = p.calc?.options;
+    if (opts && opts.length > 0) {
+      for (const opt of opts) {
+        rows.push({
+          name: p.name, option: opt.optionName, cost: opt.cost,
+          deliveryCost: p.deliveryCost || 0, isTaxable: !!p.isTaxable,
+          category, roas, timeDiscount, mult: 1.8,
+        });
+      }
+    } else {
+      rows.push({
+        name: p.name, option: "-", cost: p.cost, deliveryCost: p.deliveryCost || 0,
+        isTaxable: !!p.isTaxable, category, roas, timeDiscount, mult: 1.8,
+      });
+    }
+  }
+
+  // ── 시트 1: 마진 계산 (수식) ──
+  const headers = [
+    "상품명", "옵션명", "원가", "택배비", "과세구분", "카테고리",   // A-F 입력
+    "수수료율",                                                      // G 수식
+    "배수",                                                          // H 입력
+    "판매가",                                                        // I 수식
+    "ROAS(%)", "할인율(%)",                                          // J-K 입력
+    "타임특가가",                                                    // L 수식
+    "부가세", "올_수수료", "광고비",                                  // M-O 수식
+    "올_순이익(일반)", "올_마진율(일반)",                              // P-Q
+    "올_순이익(타임+CPS)", "올_순이익(타임+CPC)", "올_순이익(일반+CPC)", // R-T
+    "토스_수수료(일반)", "토스_순이익(일반)",                          // U-V
+    "토스_수수료(광고)", "토스_순이익(광고)",                          // W-X
+  ];
+  // 헤더 + 입력 셀만 aoa로 먼저 생성
+  const aoa: any[][] = [headers];
+  for (const r of rows) {
+    aoa.push([
+      r.name, r.option, r.cost, r.deliveryCost, r.isTaxable ? "과세" : "면세", r.category,
+      "", r.mult, "", r.roas, r.timeDiscount, "",
+      "", "", "", "", "", "", "", "", "", "", "", "",
+    ]);
+  }
+  const ws = XLSX.utils.aoa_to_sheet(aoa);
+
+  // 수식 셀 직접 설정 (aoa_to_sheet는 formula 객체를 처리 못함)
+  for (let i = 0; i < rows.length; i++) {
+    const rowNum = i + 2;
+    const setF = (col: string, formula: string) => {
+      ws[`${col}${rowNum}`] = { t: "n", f: formula };
+    };
+    setF("G", `IFERROR(VLOOKUP(F${rowNum},수수료표!A:B,2,FALSE),0.058)`);
+    setF("I", `ROUND(C${rowNum}*H${rowNum}/100,0)*100-100`);
+    setF("L", `ROUND(I${rowNum}*(1-K${rowNum}/100)/100,0)*100-100`);
+    setF("M", `IF(E${rowNum}="과세",ROUND(I${rowNum}/11,0),0)`);
+    setF("N", `ROUND(I${rowNum}*G${rowNum}*1.1,0)`);
+    setF("O", `IF(J${rowNum}>0,ROUND(I${rowNum}/(J${rowNum}/100),0),0)`);
+    setF("P", `I${rowNum}-C${rowNum}-D${rowNum}-N${rowNum}-M${rowNum}`);
+    setF("Q", `IF(I${rowNum}=0,0,P${rowNum}/I${rowNum})`);
+    setF("R", `L${rowNum}-C${rowNum}-D${rowNum}-ROUND(L${rowNum}*G${rowNum}*1.1,0)-IF(E${rowNum}="과세",ROUND(L${rowNum}/11,0),0)-IF(K${rowNum}>=20,0,IF(J${rowNum}>0,ROUND(L${rowNum}/(J${rowNum}/100),0),0))`);
+    setF("S", `L${rowNum}-C${rowNum}-D${rowNum}-ROUND(L${rowNum}*G${rowNum}*1.1,0)-IF(E${rowNum}="과세",ROUND(L${rowNum}/11,0),0)-IF(J${rowNum}>0,ROUND(L${rowNum}/(J${rowNum}/100),0),0)`);
+    setF("T", `P${rowNum}-O${rowNum}`);
+    setF("U", `ROUND(I${rowNum}*0.1,0)`);
+    setF("V", `I${rowNum}-C${rowNum}-D${rowNum}-U${rowNum}-M${rowNum}`);
+    setF("W", `ROUND(I${rowNum}*0.02,0)`);
+    setF("X", `I${rowNum}-C${rowNum}-D${rowNum}-W${rowNum}-M${rowNum}-O${rowNum}`);
+    // Q열(마진율)은 퍼센트 포맷
+    ws[`Q${rowNum}`].z = "0.0%";
+  }
+
+  // !ref 재계산 (X열까지 포함)
+  ws["!ref"] = XLSX.utils.encode_range({ s: { c: 0, r: 0 }, e: { c: 23, r: rows.length } });
+
+  ws["!cols"] = [
+    { wch: 18 }, { wch: 14 }, { wch: 10 }, { wch: 8 }, { wch: 8 }, { wch: 12 },
+    { wch: 9 }, { wch: 7 }, { wch: 10 }, { wch: 8 }, { wch: 9 }, { wch: 11 },
+    { wch: 9 }, { wch: 10 }, { wch: 9 },
+    { wch: 14 }, { wch: 10 },
+    { wch: 16 }, { wch: 16 }, { wch: 14 },
+    { wch: 12 }, { wch: 14 }, { wch: 12 }, { wch: 14 },
+  ];
+  ws["!freeze"] = { xSplit: "2", ySplit: "1" };
+
+  XLSX.utils.book_append_sheet(wb, ws, "마진 계산");
+
+  // ── 시트 2: 수수료표 (VLOOKUP 참조용) ──
+  const commData: any[][] = [
+    ["카테고리", "수수료율"],
+    ...Object.entries(ALWAYZ_COMM).map(([cat, rate]) => [cat, rate]),
+  ];
+  const wsComm = XLSX.utils.aoa_to_sheet(commData);
+  wsComm["!cols"] = [{ wch: 18 }, { wch: 10 }];
+  // B열 퍼센트 포맷
+  for (let i = 2; i <= commData.length; i++) {
+    const cell = wsComm[`B${i}`];
+    if (cell) cell.z = "0.0%";
+  }
+  XLSX.utils.book_append_sheet(wb, wsComm, "수수료표");
+
+  // ── 시트 3: 사용법 ──
+  const guideData = [
+    ["📝 수식 포함 엑셀 사용법"],
+    [""],
+    ["✏️ 편집 가능한 셀 (이것만 바꾸면 나머지는 자동 계산)"],
+    ["C열", "원가", "매입가. 바꾸면 판매가·마진 전체가 자동 재계산"],
+    ["D열", "택배비", "무료배송이면 0"],
+    ["E열", "과세구분", "'과세' 또는 '면세' 입력. 과세면 부가세 자동 차감"],
+    ["F열", "카테고리", "수수료표 시트의 카테고리명과 일치해야 VLOOKUP 작동"],
+    ["H열", "배수", "1.55(공격) / 1.8(기본) / 2.2(널널). 원하는 값 입력"],
+    ["J열", "ROAS(%)", "광고 효율. 기본 300 (광고비 = 판매가 ÷ ROAS%)"],
+    ["K열", "할인율(%)", "타임특가 할인율. 20 이상이면 CPS 광고비 자동 무료"],
+    [""],
+    ["📊 자동 계산 셀 (수식이 들어있음 - 건드리지 않는 게 좋아요)"],
+    ["G열", "수수료율", "카테고리 기반 VLOOKUP"],
+    ["I열", "판매가", "원가×배수 → 끝자리 900원 반올림"],
+    ["L열", "타임특가가", "판매가×(1-할인율%)"],
+    ["M열", "부가세", "과세면 판매가/11, 면세면 0"],
+    ["N열", "올_수수료", "판매가×수수료율×1.1 (VAT 포함)"],
+    ["O열", "광고비", "판매가÷(ROAS%/100)"],
+    ["P열", "올_순이익(일반)", "판매가 - 원가 - 택배비 - 수수료 - 부가세"],
+    ["Q열", "올_마진율(일반)", "순이익/판매가 (%)"],
+    ["R열", "올_순이익(타임+CPS)", "타임특가 기준. 할인율 20%↑이면 CPS 광고비 무료"],
+    ["S열", "올_순이익(타임+CPC)", "타임특가 기준, CPC 광고비 차감"],
+    ["T열", "올_순이익(일반+CPC)", "일반가 - 광고비"],
+    ["U열", "토스_수수료(일반)", "판매가×10% (운영8% + 결제2%)"],
+    ["V열", "토스_순이익(일반)", "광고 미집행 시 토스 순이익"],
+    ["W열", "토스_수수료(광고)", "판매가×2% (광고 집행 시 운영수수료 면제)"],
+    ["X열", "토스_순이익(광고)", "광고 집행 시 토스 순이익"],
+    [""],
+    ["💡 주의사항"],
+    ["", "판매가(I열) 수식을 지우고 직접 가격을 입력하면 원하는 예쁜 가격(예: 14,800)으로 고정 가능"],
+    ["", "카테고리 수수료율이 다르면 '수수료표' 시트에서 수정"],
+    ["", "원가/택배비 입력은 반드시 숫자만 (콤마 없이)"],
+  ];
+  const wsGuide = XLSX.utils.aoa_to_sheet(guideData);
+  wsGuide["!cols"] = [{ wch: 8 }, { wch: 22 }, { wch: 60 }];
+  XLSX.utils.book_append_sheet(wb, wsGuide, "사용법");
+
+  return XLSX.write(wb, { type: "buffer", bookType: "xlsx" });
+}
+
 // ── 엑셀 마진 일괄 계산 ──
 function calcMarginFromExcel(buffer: ArrayBuffer) {
   const wb = XLSX.read(buffer, { type: "buffer" });
@@ -647,6 +800,27 @@ const server = Bun.serve({
         const buf = XLSX.write(wb, { type: "buffer", bookType: "xlsx" });
 
         const filename = `마진계산_${new Date().toISOString().slice(0, 10)}.xlsx`;
+        return new Response(buf, {
+          headers: {
+            "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "Content-Disposition": `attachment; filename="${encodeURIComponent(filename)}"`,
+            "Access-Control-Allow-Origin": "*",
+          },
+        });
+      } catch (e: any) {
+        return Response.json({ error: e.message }, { status: 500, headers: { "Access-Control-Allow-Origin": "*" } });
+      }
+    }
+
+    // API: 마진 상품 수식 포함 엑셀 내보내기 (엑셀에서 값 편집 시 자동 재계산)
+    if (url.pathname === "/api/margin-products/export-formula" && req.method === "GET") {
+      try {
+        const products = loadMarginProducts();
+        if (products.length === 0) {
+          return Response.json({ error: "저장된 상품이 없습니다" }, { status: 404, headers: { "Access-Control-Allow-Origin": "*" } });
+        }
+        const buf = createMarginFormulaExport(products);
+        const filename = `마진계산_수식포함_${new Date().toISOString().slice(0, 10)}.xlsx`;
         return new Response(buf, {
           headers: {
             "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",

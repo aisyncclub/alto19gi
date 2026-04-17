@@ -384,6 +384,7 @@ body{font-family:'Pretendard Variable',-apple-system,system-ui,sans-serif;backgr
       <div class="section-title" style="margin:0">📊 누적 마진 관리</div>
       <div style="display:flex;gap:6px" id="mc-manage-btns" style="display:none">
         <button class="btn btn-green btn-sm" onclick="exportMarginExcel()" id="btn-export-excel" style="display:none">📥 엑셀 다운로드</button>
+        <button class="btn btn-green btn-sm" onclick="exportMarginFormulaExcel()" id="btn-export-formula" style="display:none" title="원가/택배비/배수 등을 엑셀에서 바꾸면 마진이 자동 재계산되는 수식 포함 엑셀">📊 수식 포함 엑셀</button>
       </div>
     </div>
 
@@ -2165,18 +2166,21 @@ function loadSavedProducts() {
       savedProducts = products || [];
       const container = document.getElementById('mc-saved-list');
       const exportBtn = document.getElementById('btn-export-excel');
+      const formulaBtn = document.getElementById('btn-export-formula');
       const statsEl = document.getElementById('mc-stats');
       const filterBar = document.getElementById('mc-filter-bar');
 
       if (!products || products.length === 0) {
         container.innerHTML = '<div class="empty" style="padding:30px"><div class="empty-icon">📋</div><p>마진 계산 후 상품을 저장하면 여기에 누적됩니다</p></div>';
         if (exportBtn) exportBtn.style.display = 'none';
+        if (formulaBtn) formulaBtn.style.display = 'none';
         if (statsEl) statsEl.style.display = 'none';
         if (filterBar) filterBar.style.display = 'none';
         return;
       }
 
       if (exportBtn) exportBtn.style.display = 'inline-flex';
+      if (formulaBtn) formulaBtn.style.display = 'inline-flex';
       if (statsEl) statsEl.style.display = 'block';
       if (filterBar) filterBar.style.display = 'block';
 
@@ -2423,6 +2427,29 @@ function exportMarginExcel() {
     })
     .catch(e => showToast('엑셀 내보내기 실패: ' + e.message))
     .finally(() => { btn.textContent = '📥 엑셀 다운로드'; btn.disabled = false; });
+}
+
+// 수식 포함 엑셀 내보내기 (엑셀에서 값 편집 시 자동 재계산)
+function exportMarginFormulaExcel() {
+  const btn = document.getElementById('btn-export-formula');
+  btn.textContent = '⏳ 다운로드 중...';
+  btn.disabled = true;
+  fetch('/api/margin-products/export-formula')
+    .then(r => {
+      if (!r.ok) throw new Error('내보내기 실패');
+      return r.blob();
+    })
+    .then(blob => {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `마진계산_수식포함_${new Date().toISOString().slice(0,10)}.xlsx`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('수식 포함 엑셀 다운로드 완료! 원가/택배비/배수를 바꾸면 자동 재계산됩니다.');
+    })
+    .catch(e => showToast('엑셀 내보내기 실패: ' + e.message))
+    .finally(() => { btn.textContent = '📊 수식 포함 엑셀'; btn.disabled = false; });
 }
 
 // 모달 바깥 클릭 닫기
