@@ -24,17 +24,70 @@ const FOOD_SEASONS: Record<number, { fruits: string[]; vegs: string[]; note: str
 
 const COMMISSION = { fresh: 0.058, processed: 0.106 };
 const TOSS = { sales: 0.08, payment: 0.02 };
-const DELIVERY: Record<string, number> = { light: 3000, medium: 3500, heavy: 4500 };
+// 택배비는 자동 추정하지 않고 사용자가 직접 입력. 식품 기본 0원.
 
-// ── 올웨이즈 카테고리별 수수료 (VAT 별도) ──
+// ── 올웨이즈 카테고리별 수수료 (VAT 별도, knowledge/수수료_가이드.md 기준 2026.3) ──
 const ALWAYZ_COMM: Record<string, number> = {
-  "신선식품": 0.058, "건강식품": 0.076, "가공식품": 0.106, "냉장/냉동식품": 0.106,
-  "생수/음료": 0.106, "스낵/간식": 0.106, "유제품": 0.106, "커피/차": 0.106,
-  "생활소품": 0.078, "생활잡화": 0.078, "화장지/물티슈": 0.09,
-  "방충용품": 0.10, "방향/탈취": 0.10, "생활용품": 0.108,
-  "뷰티": 0.096, "패션": 0.105, "가구/홈데코": 0.108,
-  "가전/디지털": 0.058, "주방용품": 0.108, "반려용품": 0.108,
-  "완구/취미": 0.108, "스포츠": 0.108, "문구": 0.108,
+  // 식품
+  "신선식품": 0.058,
+  "건강식품": 0.076,
+  "가공/즉석식품": 0.106,
+  "가공식품": 0.106,
+  "냉장/냉동식품": 0.106,
+  "생수/음료": 0.106,
+  "스낵/간식": 0.106,
+  "유제품/아이스크림/디저트": 0.106,
+  "유제품": 0.106,
+  "장/소스": 0.106,
+  "가루/조미료/향신료": 0.106,
+  "커피/차": 0.106,
+  "전통주": 0.106,
+  // 생활용품
+  "생활소품": 0.078,
+  "생활잡화": 0.078,
+  "화장지/물티슈": 0.09,
+  "방충용품": 0.10,
+  "방향/탈취/제습/살충": 0.10,
+  "방향/탈취": 0.10,
+  "생리대/성인기저귀": 0.10,
+  "세제/세탁용품/청소용품": 0.108,
+  "생활용품": 0.108,
+  // 출산/유아동
+  "기저귀/교체용품": 0.064,
+  "분유/유아식품": 0.064,
+  "유아물티슈/캡/홀더": 0.082,
+  "유아위생/건강/세제": 0.098,
+  "유아동 기타": 0.10,
+  // 가전/디지털
+  "컴퓨터/게임/SW": 0.05,
+  "TV/영상가전": 0.058,
+  "계절환경가전": 0.058,
+  "냉장고/밥솥/주방가전": 0.058,
+  "생활가전": 0.058,
+  "가전/디지털": 0.058,
+  "카메라/캠코더": 0.06,
+  "휴대폰/태블릿PC/액세서리": 0.064,
+  "음향기기/이어폰/스피커": 0.078,
+  "이미용건강가전": 0.078,
+  // 뷰티
+  "뷰티": 0.096,
+  // 패션
+  "패션": 0.105,
+  "패션의류": 0.105,
+  "패션잡화": 0.105,
+  // 기타
+  "가구/홈데코": 0.108,
+  "주방용품": 0.108,
+  "반려/애완용품": 0.108,
+  "반려용품": 0.108,
+  "문구/오피스": 0.108,
+  "문구": 0.108,
+  "완구/취미": 0.108,
+  "도서": 0.108,
+  "스포츠/레져": 0.108,
+  "스포츠": 0.108,
+  "골프/자전거": 0.076,
+  "자동차용품": 0.10,
 };
 
 // ── 마진 계산 함수 ──
@@ -69,11 +122,14 @@ function calcMargin(input: MarginInput) {
     // 올웨이즈 일반 판매
     const alwayzNormal = price - cost - deliveryCost - commission - vat;
 
-    // 올웨이즈 타임특가
+    // 올웨이즈 타임특가 가격/수수료/부가세
     const timePrice = prettyPrice(price * (1 - timeDiscount / 100));
     const timeVat = isTaxable ? Math.round(timePrice / 11) : 0;
     const timeComm = Math.round(timePrice * commRateVAT);
     const adCost = Math.round(timePrice / (roas / 100));
+
+    // 타임특가 단독 (광고 없음)
+    const alwayzTime = timePrice - cost - deliveryCost - timeComm - timeVat;
 
     // 타임특가 + CPS (20% 이상이면 CPS 무료)
     const cpsFree = timeDiscount >= 20;
@@ -103,12 +159,20 @@ function calcMargin(input: MarginInput) {
       mode: m.label, mult: m.mult, price,
       vat, commission,
       alwayz: {
+        // 시나리오 1: 일반 판매 (광고/프로모션 없음)
         normal: { profit: alwayzNormal, rate: +((alwayzNormal / price) * 100).toFixed(1) },
-        timeCPS: { price: timePrice, profit: alwayzTimeCPS, rate: +((alwayzTimeCPS / timePrice) * 100).toFixed(1), cpsFree, adCost: cpsFree ? 0 : adCost },
-        timeCPC: { price: timePrice, profit: alwayzTimeCPC, rate: +((alwayzTimeCPC / timePrice) * 100).toFixed(1), adCost },
-        cps: { profit: alwayzCPS, rate: +((alwayzCPS / price) * 100).toFixed(1), adCost: alwayzAdCost },
-        cpc: { profit: alwayzCPC, rate: +((alwayzCPC / price) * 100).toFixed(1), adCost: alwayzAdCost },
+        // 시나리오 2: 타임특가 단독 (광고 없음)
+        time: { price: timePrice, profit: alwayzTime, rate: +((alwayzTime / timePrice) * 100).toFixed(1), discount: timeDiscount },
+        // 시나리오 3: CPM 광고 단독 (CPM은 타임특가와 결합 불가)
         cpm: { profit: alwayzCPM, rate: +((alwayzCPM / price) * 100).toFixed(1), adCost: alwayzAdCost },
+        // 시나리오 4: CPC 광고 단독
+        cpc: { profit: alwayzCPC, rate: +((alwayzCPC / price) * 100).toFixed(1), adCost: alwayzAdCost },
+        // 시나리오 5: CPS 광고 단독
+        cps: { profit: alwayzCPS, rate: +((alwayzCPS / price) * 100).toFixed(1), adCost: alwayzAdCost },
+        // 시나리오 6: 타임특가 + CPC
+        timeCPC: { price: timePrice, profit: alwayzTimeCPC, rate: +((alwayzTimeCPC / timePrice) * 100).toFixed(1), adCost, discount: timeDiscount },
+        // 시나리오 7: 타임특가 + CPS (할인≥20%면 광고비 무료)
+        timeCPS: { price: timePrice, profit: alwayzTimeCPS, rate: +((alwayzTimeCPS / timePrice) * 100).toFixed(1), cpsFree, adCost: cpsFree ? 0 : adCost, discount: timeDiscount },
       },
       toss: {
         normal: { profit: tossNormal, rate: +((tossNormal / price) * 100).toFixed(1), commission: tossComm },
@@ -173,13 +237,17 @@ function findCol(headers: string[], keywords: string[]): string | null {
   return null;
 }
 
+// 끝자리를 항상 900원으로 맞춤 (가장 가까운 _900). 동률이면 위쪽 우선.
 function prettyPrice(raw: number): number {
-  if (raw < 500) return 900; // 최소 900원
-  const r = Math.round(raw / 100) * 100;
-  const last3 = r % 1000;
-  if (last3 >= 750) return r - last3 + 900;
-  if (last3 >= 250) return r - last3 + 800;
-  return Math.max(900, r - last3 + 900 - 1000);
+  if (raw <= 900) return 900;
+  const lower = Math.floor(raw / 1000) * 1000 + 900; // 같은 천단위의 _900
+  if (raw === lower) return raw;
+  if (raw < lower) {
+    const below = lower - 1000;
+    return (lower - raw <= raw - below) ? lower : Math.max(900, below);
+  }
+  const above = lower + 1000;
+  return (raw - lower <= above - raw) ? lower : above;
 }
 
 function isFresh(name: string, cat: string): boolean {
@@ -225,7 +293,8 @@ function analyzeExcel(buffer: ArrayBuffer, colMap?: { name?: string; price?: str
     const weight = weightCol ? (row[weightCol] + "").trim() : "";
     const fresh = isFresh(name, cat);
     const commRate = fresh ? COMMISSION.fresh : COMMISSION.processed;
-    const delCost = cost > 10000 ? DELIVERY.heavy : cost > 5000 ? DELIVERY.medium : DELIVERY.light;
+    // 택배비는 사용자가 직접 입력해야 하므로 자동 추정 없이 0원으로 시작 (식품 기본)
+    const delCost = 0;
 
     const calc = (mult: number) => {
       const price = prettyPrice(cost * mult);

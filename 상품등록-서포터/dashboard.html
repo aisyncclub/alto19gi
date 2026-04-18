@@ -288,8 +288,8 @@ body{font-family:'Pretendard Variable',-apple-system,system-ui,sans-serif;backgr
           <input type="number" id="mc-cost" placeholder="예: 8000" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--border2);background:var(--bg3);color:var(--text);font-size:14px">
         </div>
         <div>
-          <label style="font-size:12px;font-weight:600;display:block;margin-bottom:4px">택배비 (무료배송이면 0)</label>
-          <input type="number" id="mc-delivery" value="0" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--border2);background:var(--bg3);color:var(--text);font-size:14px">
+          <label style="font-size:12px;font-weight:600;display:block;margin-bottom:4px">택배비 <span style="color:var(--text3);font-weight:400">(식품 기본 0원, 직접 부담분만 입력)</span></label>
+          <input type="number" id="mc-delivery" value="0" placeholder="0" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--border2);background:var(--bg3);color:var(--text);font-size:14px">
         </div>
         <div>
           <label style="font-size:12px;font-weight:600;display:block;margin-bottom:4px">과세 구분</label>
@@ -326,13 +326,57 @@ body{font-family:'Pretendard Variable',-apple-system,system-ui,sans-serif;backgr
           <div>
             <label style="font-size:11px;font-weight:600;display:block;margin-bottom:3px;color:var(--text3)">카테고리</label>
             <select id="mc-cat" style="width:100%;padding:8px;border-radius:6px;border:1px solid var(--border2);background:var(--bg3);color:var(--text);font-size:12px">
-              <option value="신선식품">신선식품 (5.8%)</option>
-              <option value="건강식품">건강식품 (7.6%)</option>
-              <option value="가공식품">가공식품 (10.6%)</option>
-              <option value="생활소품">생활소품 (7.8%)</option>
-              <option value="뷰티">뷰티 (9.6%)</option>
-              <option value="패션">패션 (10.5%)</option>
-              <option value="생활용품">생활용품 (10.8%)</option>
+              <optgroup label="식품">
+                <option value="신선식품">신선식품 (5.8%)</option>
+                <option value="건강식품">건강식품 (7.6%)</option>
+                <option value="가공식품">가공식품 (10.6%)</option>
+                <option value="냉장/냉동식품">냉장/냉동식품 (10.6%)</option>
+                <option value="생수/음료">생수/음료 (10.6%)</option>
+                <option value="스낵/간식">스낵/간식 (10.6%)</option>
+                <option value="유제품/아이스크림/디저트">유제품/아이스크림/디저트 (10.6%)</option>
+                <option value="장/소스">장/소스 (10.6%)</option>
+                <option value="가루/조미료/향신료">가루/조미료/향신료 (10.6%)</option>
+                <option value="커피/차">커피/차 (10.6%)</option>
+                <option value="전통주">전통주 (10.6%)</option>
+              </optgroup>
+              <optgroup label="생활용품">
+                <option value="생활소품">생활소품 (7.8%)</option>
+                <option value="화장지/물티슈">화장지/물티슈 (9.0%)</option>
+                <option value="방향/탈취/제습/살충">방향/탈취/제습/살충 (10.0%)</option>
+                <option value="생리대/성인기저귀">생리대/성인기저귀 (10.0%)</option>
+                <option value="세제/세탁용품/청소용품">세제/세탁용품/청소용품 (10.8%)</option>
+                <option value="생활용품">생활용품 (10.8%)</option>
+              </optgroup>
+              <optgroup label="출산/유아동">
+                <option value="기저귀/교체용품">기저귀/교체용품 (6.4%)</option>
+                <option value="분유/유아식품">분유/유아식품 (6.4%)</option>
+                <option value="유아물티슈/캡/홀더">유아물티슈/캡/홀더 (8.2%)</option>
+                <option value="유아위생/건강/세제">유아위생/건강/세제 (9.8%)</option>
+              </optgroup>
+              <optgroup label="가전/디지털">
+                <option value="컴퓨터/게임/SW">컴퓨터/게임/SW (5.0%)</option>
+                <option value="TV/영상가전">TV/영상가전 (5.8%)</option>
+                <option value="냉장고/밥솥/주방가전">냉장고/밥솥/주방가전 (5.8%)</option>
+                <option value="생활가전">생활가전 (5.8%)</option>
+                <option value="휴대폰/태블릿PC/액세서리">휴대폰/태블릿PC/액세서리 (6.4%)</option>
+                <option value="음향기기/이어폰/스피커">음향기기/이어폰/스피커 (7.8%)</option>
+                <option value="이미용건강가전">이미용건강가전 (7.8%)</option>
+              </optgroup>
+              <optgroup label="패션/뷰티">
+                <option value="뷰티">뷰티 (9.6%)</option>
+                <option value="패션">패션 (10.5%)</option>
+              </optgroup>
+              <optgroup label="기타">
+                <option value="가구/홈데코">가구/홈데코 (10.8%)</option>
+                <option value="주방용품">주방용품 (10.8%)</option>
+                <option value="반려/애완용품">반려/애완용품 (10.8%)</option>
+                <option value="문구/오피스">문구/오피스 (10.8%)</option>
+                <option value="완구/취미">완구/취미 (10.8%)</option>
+                <option value="도서">도서 (10.8%)</option>
+                <option value="스포츠/레져">스포츠/레져 (10.8%)</option>
+                <option value="골프/자전거">골프/자전거 (7.6%)</option>
+                <option value="자동차용품">자동차용품 (10.0%)</option>
+              </optgroup>
             </select>
           </div>
           <div>
@@ -1731,14 +1775,24 @@ function renderUnifiedTable(data) {
     const isDefault = m.mode === '기본';
     const border = isDefault ? 'border:2px solid var(--blue);' : '';
 
-    // 모든 광고 방식의 마진을 한 테이블에
+    // 올웨이즈 7개 시나리오 + 토스 2개
+    const timeDisc = m.alwayz.time?.discount ?? 20;
     const rows = [
-      { label: '🟢 올웨이즈 광고 없음', profit: m.alwayz.normal.profit, rate: m.alwayz.normal.rate, adCost: '-', tag: '' },
-      { label: '🟢 올웨이즈 CPS', profit: m.alwayz.cps.profit, rate: m.alwayz.cps.rate, adCost: formatNum(m.alwayz.cps.adCost)+'원', tag: '' },
-      { label: '🟢 올웨이즈 CPC', profit: m.alwayz.cpc.profit, rate: m.alwayz.cpc.rate, adCost: formatNum(m.alwayz.cpc.adCost)+'원', tag: '' },
-      { label: '🟢 올웨이즈 CPM', profit: m.alwayz.cpm.profit, rate: m.alwayz.cpm.rate, adCost: formatNum(m.alwayz.cpm.adCost)+'원', tag: '' },
-      { label: '🔥 타임특가 + CPS', profit: m.alwayz.timeCPS.profit, rate: m.alwayz.timeCPS.rate, adCost: m.alwayz.timeCPS.cpsFree ? '무료!' : formatNum(m.alwayz.timeCPS.adCost)+'원', tag: m.alwayz.timeCPS.cpsFree ? '🆓' : '' },
+      // 1. 일반 판매
+      { label: '🟢 올웨이즈 일반판매', profit: m.alwayz.normal.profit, rate: m.alwayz.normal.rate, adCost: '-', tag: '' },
+      // 2. 타임특가 단독
+      { label: `⏰ 타임특가(${timeDisc}%) 단독`, profit: m.alwayz.time.profit, rate: m.alwayz.time.rate, adCost: '-', tag: '' },
+      // 3. CPM 단독
+      { label: '📢 CPM 단독', profit: m.alwayz.cpm.profit, rate: m.alwayz.cpm.rate, adCost: formatNum(m.alwayz.cpm.adCost)+'원', tag: '' },
+      // 4. CPC 단독
+      { label: '🎯 CPC 단독', profit: m.alwayz.cpc.profit, rate: m.alwayz.cpc.rate, adCost: formatNum(m.alwayz.cpc.adCost)+'원', tag: '' },
+      // 5. CPS 단독
+      { label: '💰 CPS 단독', profit: m.alwayz.cps.profit, rate: m.alwayz.cps.rate, adCost: formatNum(m.alwayz.cps.adCost)+'원', tag: '' },
+      // 6. 타임특가 + CPC
       { label: '🔥 타임특가 + CPC', profit: m.alwayz.timeCPC.profit, rate: m.alwayz.timeCPC.rate, adCost: formatNum(m.alwayz.timeCPC.adCost)+'원', tag: '' },
+      // 7. 타임특가 + CPS
+      { label: '🔥 타임특가 + CPS', profit: m.alwayz.timeCPS.profit, rate: m.alwayz.timeCPS.rate, adCost: m.alwayz.timeCPS.cpsFree ? '무료!' : formatNum(m.alwayz.timeCPS.adCost)+'원', tag: m.alwayz.timeCPS.cpsFree ? '🆓' : '' },
+      // 토스
       { label: '🟣 토스 광고 없음', profit: m.toss.normal.profit, rate: m.toss.normal.rate, adCost: '-', tag: '' },
       { label: '🟣 토스 광고', profit: m.toss.ad.profit, rate: m.toss.ad.rate, adCost: formatNum(m.toss.ad.adCost)+'원', tag: '' },
     ];
@@ -1838,9 +1892,13 @@ function renderRoasCompare(data) {
 function renderUnifiedRecommend(data) {
   const m = data.modes[1];
   const all = [
-    { name: '올웨이즈 광고없음', profit: m.alwayz.normal.profit },
-    { name: '타임특가+CPS', profit: m.alwayz.timeCPS.profit },
+    { name: '올웨이즈 일반판매', profit: m.alwayz.normal.profit },
+    { name: '타임특가 단독', profit: m.alwayz.time.profit },
+    { name: '올웨이즈 CPM', profit: m.alwayz.cpm.profit },
     { name: '올웨이즈 CPC', profit: m.alwayz.cpc.profit },
+    { name: '올웨이즈 CPS', profit: m.alwayz.cps.profit },
+    { name: '타임특가+CPC', profit: m.alwayz.timeCPC.profit },
+    { name: '타임특가+CPS', profit: m.alwayz.timeCPS.profit },
     { name: '토스 광고없음', profit: m.toss.normal.profit },
     { name: '토스 광고', profit: m.toss.ad.profit },
   ];
@@ -1854,7 +1912,9 @@ function renderUnifiedRecommend(data) {
 
   let tip = '';
   if (best.name === '타임특가+CPS') tip = '타임특가 할인해도 CPS 광고비가 무료라서 가장 유리해요! 빠른 판매량 확보에 최적.';
-  else if (best.name.includes('광고없음')) tip = '광고 없이도 마진이 넉넉해요. 자연 유입으로 시작해보세요.';
+  else if (best.name === '타임특가 단독') tip = '광고 없이 타임특가만으로도 마진이 잘 나와요. 프로모션으로 끌어모으기 좋습니다.';
+  else if (best.name === '올웨이즈 일반판매') tip = '광고 없이도 마진이 넉넉해요. 자연 유입으로 시작해보세요.';
+  else if (best.name.includes('CPM')) tip = '노출 광고로 인지도를 확보하면서도 마진이 살아납니다. 신규 런칭에 적합.';
   else if (best.name.includes('토스')) tip = '토스쇼핑은 광고 집행 시 운영수수료 8%가 면제돼요.';
   else tip = '광고 효율(ROAS)이 높을수록 이 방식이 유리해져요.';
 

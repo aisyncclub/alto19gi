@@ -73,26 +73,35 @@ td{padding:8px 10px;border-bottom:1px solid var(--border)}
   {{BAR_CHARTS}}
 </div>
 
-<!-- 전략별 비교 -->
-<h2>⚡ 올웨이즈 전략 비교</h2>
+<!-- 7개 판매 시나리오 -->
+<h2>⚡ 올웨이즈 7가지 판매 시나리오</h2>
+
+<!-- 그룹 1: 광고 없음 -->
+<div class="strat-card strat-b">
+  <div style="font-weight:700;font-size:15px;margin-bottom:4px">📦 광고/프로모션 없음</div>
+  <div style="font-size:12px;color:var(--text2);margin-bottom:12px">기본 판매 (시나리오 1)</div>
+  {{SCENARIO_NORMAL}}
+</div>
 
 <div class="strat-card strat-a">
-  <div style="font-weight:700;font-size:15px;margin-bottom:4px">🔥 전략A: 타임특가(20%↓) + CPS/CPC</div>
-  <div style="font-size:12px;color:var(--text2);margin-bottom:12px">타임특가 20% 할인 → CPS 광고비 무료! 빠른 판매량 확보</div>
-  {{STRAT_A_TABLE}}
-  <div style="margin-top:8px;padding:8px 12px;background:var(--green-bg);border-radius:6px;font-size:12px;color:var(--green);font-weight:600">✅ 타임특가 20% 이상 할인 시 CPS 광고비 무료!</div>
+  <div style="font-weight:700;font-size:15px;margin-bottom:4px">⏰ 타임특가 단독 ({{TIME_DISCOUNT}}% 할인)</div>
+  <div style="font-size:12px;color:var(--text2);margin-bottom:12px">프로모션만, 광고 없음 (시나리오 2)</div>
+  {{SCENARIO_TIME}}
 </div>
 
-<div class="strat-card strat-b">
-  <div style="font-weight:700;font-size:15px;margin-bottom:4px">📦 전략B: 일반가 + CPC/CPS</div>
-  <div style="font-size:12px;color:var(--text2);margin-bottom:12px">할인 없이 광고로 판매. 마진 여유 적을 때</div>
-  {{STRAT_B_TABLE}}
-</div>
-
+<!-- 그룹 2: 광고 단독 -->
 <div class="strat-card strat-c">
-  <div style="font-weight:700;font-size:15px;margin-bottom:4px">📢 전략C: 일반가 + CPM</div>
-  <div style="font-size:12px;color:var(--text2);margin-bottom:12px">노출 광고로 인지도 확보. 신규 런칭에 적합</div>
-  {{STRAT_C_TABLE}}
+  <div style="font-weight:700;font-size:15px;margin-bottom:4px">📢 광고 단독</div>
+  <div style="font-size:12px;color:var(--text2);margin-bottom:12px">정상가에 광고만 운영 (시나리오 3·4·5) — CPM은 단독 운영만 가능</div>
+  {{SCENARIO_AD_TABLE}}
+</div>
+
+<!-- 그룹 3: 타임특가 + 광고 결합 -->
+<div class="strat-card strat-a">
+  <div style="font-weight:700;font-size:15px;margin-bottom:4px">🔥 타임특가 + 광고 결합</div>
+  <div style="font-size:12px;color:var(--text2);margin-bottom:12px">타임특가({{TIME_DISCOUNT}}%) + CPC/CPS 결합 (시나리오 6·7)</div>
+  {{SCENARIO_TIME_AD_TABLE}}
+  <div style="margin-top:8px;padding:8px 12px;background:var(--green-bg);border-radius:6px;font-size:12px;color:var(--green);font-weight:600">✅ 타임특가 20% 이상 할인 시 CPS 광고비 무료!</div>
 </div>
 
 <h2>🟣 토스쇼핑</h2>
